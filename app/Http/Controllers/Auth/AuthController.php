@@ -30,6 +30,7 @@ final class AuthController extends Controller
      *     path="/api/login",
      *     summary="Request OTP for login",
      *     tags={"Authentication"},
+     *     security={},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -87,6 +88,7 @@ final class AuthController extends Controller
      *     path="/api/verify-pin",
      *     summary="Verify OTP and get access token",
      *     tags={"Authentication"},
+     *     security={},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
