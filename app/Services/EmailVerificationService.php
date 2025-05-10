@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Mail\EmailVerificationPin;
 use App\Models\User;
 use App\Models\EmailVerificationPin as EmailVerificationPinModel;
 use Illuminate\Support\Facades\Mail;
@@ -15,7 +14,7 @@ final class EmailVerificationService
     public function sendVerificationPin(User $user): void
     {
         $pin = random_int(100000, 999999);
-        EmailVerificationPin::updateOrCreate(
+        EmailVerificationPinModel::updateOrCreate(
             ['user_id' => $user->id],
             [
                 'pin' => $pin,
