@@ -45,5 +45,5 @@ jobs:
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
-          sudo systemctl restart php8.2-fpm
-          sudo systemctl restart apache2 
+          sudo systemctl restart php-fpm
+          sudo systemctl restart httpd 
