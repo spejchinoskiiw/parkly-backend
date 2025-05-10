@@ -34,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Reservation routes
     Route::post('/reservations/ondemand', [ReservationController::class, 'createOnDemand']);
     Route::post('/reservations/scheduled', [ReservationController::class, 'createScheduled']);
+    Route::get('/available-spots', [ReservationController::class, 'getAvailableSpots']);
 });
 
 Route::post('/auth/register', [AuthController::class, 'register']);

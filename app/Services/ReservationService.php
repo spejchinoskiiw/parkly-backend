@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\ReservationType;
+use App\Models\Facility;
 use App\Models\ParkingSpot;
 use App\Models\Reservation;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 final class ReservationService
@@ -119,5 +121,109 @@ final class ReservationService
         
         // If any reservation exists for this time period, the spot is not available
         return !$query->exists();
+    }
+
+    /**
+     * Get available spots with their time slots for a specific facility and date.
+     * 
+     * @param int $facilityId The facility ID
+     * @param Carbon $date The date to check availability for
+     * @return array<int, array<string, string>> Array of parking spots with their available time slots
+     */
+    public function getAvailableSpotsWithTimeSlots(int $facilityId, Carbon $date): array
+    {
+        // Set the work day start and end times (8am to 5pm)
+        $workDayStart = Carbon::parse($date->format('Y-m-d') . ' 08:00:00');
+        $workDayEnd = Carbon::parse($date->format('Y-m-d') . ' 17:00:00');
+        
+        // Get all parking spots for the specified facility
+        $parkingSpots = ParkingSpot::where('facility_id', $facilityId)->get();
+        
+        // Initialize the result array
+        $availableSpotsWithTimeSlots = [];
+        
+        foreach ($parkingSpots as $parkingSpot) {
+            // Get all reservations for this parking spot on the specified date
+            $reservations = Reservation::where('parking_spot_id', $parkingSpot->id)
+                ->where(function (Builder $query) use ($workDayStart, $workDayEnd) {
+                    // Get reservations that overlap with the work day
+                    $query->whereBetween('start_time', [$workDayStart, $workDayEnd])
+                        ->orWhereBetween('end_time', [$workDayStart, $workDayEnd])
+                        ->orWhere(function (Builder $query) use ($workDayStart, $workDayEnd) {
+                            // Get reservations that completely contain the work day
+                            $query->where('start_time', '<=', $workDayStart)
+                                ->where(function (Builder $query) use ($workDayEnd) {
+                                    $query->where('end_time', '>=', $workDayEnd)
+                                        ->orWhere('end_time', null);
+                                });
+                        });
+                })
+                ->orderBy('start_time')
+                ->get();
+            
+            // Calculate available time slots based on reservations
+            $availableTimeSlots = $this->calculateAvailableTimeSlots($workDayStart, $workDayEnd, $reservations);
+            
+            // Add to result if there are available time slots
+            if (!empty($availableTimeSlots)) {
+                $availableSpotsWithTimeSlots[$parkingSpot->spot_number] = $availableTimeSlots;
+            }
+        }
+        
+        return $availableSpotsWithTimeSlots;
+    }
+    
+    /**
+     * Calculate available time slots based on existing reservations.
+     * 
+     * @param Carbon $workDayStart The start of the work day
+     * @param Carbon $workDayEnd The end of the work day
+     * @param Collection $reservations Collection of reservations
+     * @return array<array<string, string>> Array of available time slots
+     */
+    private function calculateAvailableTimeSlots(Carbon $workDayStart, Carbon $workDayEnd, Collection $reservations): array
+    {
+        // If there are no reservations, the entire work day is available
+        if ($reservations->isEmpty()) {
+            return [
+                [
+                    'start' => $workDayStart->format('Y-m-d H:i:s'),
+                    'end' => $workDayEnd->format('Y-m-d H:i:s'),
+                ]
+            ];
+        }
+        
+        $availableSlots = [];
+        $currentTime = $workDayStart->copy();
+        
+        foreach ($reservations as $reservation) {
+            $reservationStart = max($workDayStart->copy(), new Carbon($reservation->start_time));
+            
+            // If there's a gap between current time and reservation start, add it as an available slot
+            if ($currentTime->lt($reservationStart)) {
+                $availableSlots[] = [
+                    'start' => $currentTime->format('Y-m-d H:i:s'),
+                    'end' => $reservationStart->format('Y-m-d H:i:s'),
+                ];
+            }
+            
+            // Move current time to the end of this reservation
+            if ($reservation->end_time) {
+                $currentTime = max($currentTime, new Carbon($reservation->end_time));
+            } else {
+                // For on-demand reservations, assume they block until the end of the day
+                $currentTime = $workDayEnd->copy();
+            }
+        }
+        
+        // Add any remaining time until the end of the work day
+        if ($currentTime->lt($workDayEnd)) {
+            $availableSlots[] = [
+                'start' => $currentTime->format('Y-m-d H:i:s'),
+                'end' => $workDayEnd->format('Y-m-d H:i:s'),
+            ];
+        }
+        
+        return $availableSlots;
     }
 } 

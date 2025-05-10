@@ -62,7 +62,7 @@ This document outlines the specific, concrete tasks for implementing the Parkly 
 - [x] Create reservation validation logic
 - [x] Build conflict detection algorithm
 - [x] Implement date/time availability checking
-- [ ] Create endpoints for listing available spots by time
+- [x] Create endpoints for listing available spots by time
 - [ ] Implement user-specific reservation listings
 - [ ] Add reservation modification with permission checks
 - [ ] Create cancellation functionality
