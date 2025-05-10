@@ -38,8 +38,9 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
         
-          cd /var/www/html
-          git pull origin master
+          cd /var/www/html/parkly-backend
+          git fetch
+          git pull
           php composer.phar install --no-interaction --prefer-dist --optimize-autoloader
           php artisan migrate --force
           php artisan config:cache
