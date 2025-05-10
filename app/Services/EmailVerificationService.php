@@ -23,7 +23,7 @@ final class EmailVerificationService
             ]
         );
 
-        Mail::to($user->email)->send(new EmailVerificationPin($user, $pin));
+        //Mail::to($user->email)->send(new EmailVerificationPin($user, $pin));
     }
 
     public function verifyPin(User $user, string $pin): bool
