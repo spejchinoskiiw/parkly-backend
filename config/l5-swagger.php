@@ -233,7 +233,7 @@ return [
                  * 'full' (expands the tags and operations),
                  * 'none' (expands nothing).
                  */
-                'doc_expansion' => 'none',
+                'doc_expansion' => 'list',
 
                 /**
                  * If set, enables filtering. The top bar will show an edit box that
@@ -244,6 +244,12 @@ return [
                  * the tag.
                  */
                 'filter' => true,
+
+                /*
+                 * Set this to sort the tag or operation list alphabetically
+                 */
+                'operationsSorter' => 'alpha',
+                'tagsSorter' => 'alpha',
 
                 /**
                  * If set, the request sample will be persisted using 'Try it out' button

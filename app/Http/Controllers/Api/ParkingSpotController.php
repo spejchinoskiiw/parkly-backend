@@ -76,7 +76,7 @@ final class ParkingSpotController extends Controller
      *         response=401,
      *         description="Unauthenticated"
      *     ),
-     *     security={{ "sanctum": {} }}
+     *     security={{ "bearerAuth": {} }}
      * )
      */
     public function index(Request $request): AnonymousResourceCollection
@@ -159,7 +159,7 @@ final class ParkingSpotController extends Controller
      *         response=401,
      *         description="Unauthenticated"
      *     ),
-     *     security={{ "sanctum": {} }}
+     *     security={{ "bearerAuth": {} }}
      * )
      */
     public function store(StoreParkingSpotRequest $request): ParkingSpotResource
@@ -215,7 +215,7 @@ final class ParkingSpotController extends Controller
      *         response=401,
      *         description="Unauthenticated"
      *     ),
-     *     security={{ "sanctum": {} }}
+     *     security={{ "bearerAuth": {} }}
      * )
      */
     public function show(ParkingSpot $parkingSpot): ParkingSpotResource
@@ -285,7 +285,7 @@ final class ParkingSpotController extends Controller
      *         response=401,
      *         description="Unauthenticated"
      *     ),
-     *     security={{ "sanctum": {} }}
+     *     security={{ "bearerAuth": {} }}
      * )
      */
     public function update(UpdateParkingSpotRequest $request, ParkingSpot $parkingSpot): ParkingSpotResource
@@ -329,7 +329,7 @@ final class ParkingSpotController extends Controller
      *         response=401,
      *         description="Unauthenticated"
      *     ),
-     *     security={{ "sanctum": {} }}
+     *     security={{ "bearerAuth": {} }}
      * )
      */
     public function destroy(ParkingSpot $parkingSpot): JsonResponse

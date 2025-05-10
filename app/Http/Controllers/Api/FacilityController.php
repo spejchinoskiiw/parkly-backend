@@ -68,7 +68,7 @@ final class FacilityController extends Controller
      *         response=401,
      *         description="Unauthenticated"
      *     ),
-     *     security={{ "sanctum": {} }}
+     *     security={{ "bearerAuth": {} }}
      * )
      */
     public function index(): AnonymousResourceCollection
@@ -146,7 +146,7 @@ final class FacilityController extends Controller
      *         response=401,
      *         description="Unauthenticated"
      *     ),
-     *     security={{ "sanctum": {} }}
+     *     security={{ "bearerAuth": {} }}
      * )
      */
     public function store(StoreFacilityRequest $request): FacilityResource
@@ -203,7 +203,7 @@ final class FacilityController extends Controller
      *         response=401,
      *         description="Unauthenticated"
      *     ),
-     *     security={{ "sanctum": {} }}
+     *     security={{ "bearerAuth": {} }}
      * )
      */
     public function show(Facility $facility): FacilityResource
@@ -276,7 +276,7 @@ final class FacilityController extends Controller
      *         response=401,
      *         description="Unauthenticated"
      *     ),
-     *     security={{ "sanctum": {} }}
+     *     security={{ "bearerAuth": {} }}
      * )
      */
     public function update(UpdateFacilityRequest $request, Facility $facility): FacilityResource
@@ -320,7 +320,7 @@ final class FacilityController extends Controller
      *         response=401,
      *         description="Unauthenticated"
      *     ),
-     *     security={{ "sanctum": {} }}
+     *     security={{ "bearerAuth": {} }}
      * )
      */
     public function destroy(Facility $facility): JsonResponse

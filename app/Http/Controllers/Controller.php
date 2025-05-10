@@ -24,10 +24,23 @@ use Illuminate\Routing\Controller as BaseController;
  * )
  * 
  * @OA\SecurityScheme(
- *     securityScheme="bearerAuth",
  *     type="http",
+ *     securityScheme="bearerAuth",
  *     scheme="bearer",
  *     bearerFormat="JWT"
+ * )
+ * 
+ * @OA\Tag(
+ *     name="Authentication",
+ *     description="API Endpoints for user authentication"
+ * )
+ * @OA\Tag(
+ *     name="Facilities",
+ *     description="API Endpoints for managing parking facilities"
+ * )
+ * @OA\Tag(
+ *     name="Parking Spots",
+ *     description="API Endpoints for managing parking spots within facilities"
  * )
  */
 class Controller extends BaseController
