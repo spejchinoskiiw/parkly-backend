@@ -37,7 +37,8 @@ jobs:
         username: ec2-user
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          cd /var/www/parkly-backend
+          mkdir -p /var/www/html/parkly-backend
+          cd /var/www/html/parkly-backend
           git pull origin master
           composer install --no-interaction --prefer-dist --optimize-autoloader
           php artisan migrate --force
