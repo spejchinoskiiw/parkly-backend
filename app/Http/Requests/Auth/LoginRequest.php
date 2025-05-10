@@ -17,7 +17,6 @@ final class LoginRequest extends FormRequest
     {
         return [
             'email' => ['required', 'email', 'regex:/^[^@]+@iwconnect\.com$/'],
-            'password' => ['required', 'string'],
         ];
     }
 

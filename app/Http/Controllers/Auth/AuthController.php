@@ -6,13 +6,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\VerifyPinRequest;
 use App\Models\User;
 use App\Services\EmailVerificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 final class AuthController extends Controller
@@ -21,31 +19,13 @@ final class AuthController extends Controller
         private readonly EmailVerificationService $emailVerificationService
     ) {}
 
-    public function register(RegisterRequest $request): JsonResponse
-    {
-        $user = User::create([
-            'name' => $request->input('name'),
-            'email' => $request->input('email'),
-            'password' => Hash::make($request->input('password')),
-            'role' => 'user', // Default role
-        ]);
-
-        // Send verification PIN
-        $this->emailVerificationService->sendVerificationPin($user);
-
-        return response()->json([
-            'message' => 'Registration successful. Please check your email for verification PIN.',
-            'user' => $user
-        ], 201);
-    }
-
     public function login(LoginRequest $request): JsonResponse
     {
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$user) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'email' => ['User not found.'],
             ]);
         }
 
