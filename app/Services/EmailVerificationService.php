@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Mail\EmailVerificationPin;
 use App\Models\User;
 use App\Models\EmailVerificationPin as EmailVerificationPinModel;
 use Illuminate\Support\Facades\Mail;
@@ -22,7 +23,7 @@ final class EmailVerificationService
             ]
         );
 
-        //Mail::to($user->email)->send(new EmailVerificationPin($user, $pin));
+        Mail::to($user->email)->send(new EmailVerificationPin($user, $pin));
     }
 
     public function verifyPin(User $user, string $pin): bool

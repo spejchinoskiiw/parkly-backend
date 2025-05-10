@@ -11,12 +11,10 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use MailerSend\Helpers\Builder\Personalization;
-use MailerSend\LaravelDriver\MailerSendTrait;
 
 final class EmailVerificationPin extends Mailable
 {
-    use Queueable, SerializesModels, MailerSendTrait;
+    use Queueable, SerializesModels;
 
     public function __construct(
         public readonly User $user,
@@ -32,22 +30,14 @@ final class EmailVerificationPin extends Mailable
 
     public function content(): Content
     {
-        // Add MailerSend personalization
-        $this->mailersend(
-            template_id: null,
-            tags: ['verification', 'pin'],
-            personalization: [
-                new Personalization($this->user->email, [
-                    'name' => $this->user->name,
-                    'pin' => $this->pin,
-                    'expires_at' => Carbon::now()->addMinutes(10)->format('H:i:s'),
-                ])
-            ],
-        );
-
         return new Content(
             view: 'emails.verification-pin',
-            text: 'emails.verification-pin-text'
+            text: 'emails.verification-pin-text',
+            with: [
+                'name' => $this->user->name,
+                'pin' => $this->pin,
+                'expires_at' => Carbon::now()->addMinutes(10)->format('H:i:s'),
+            ]
         );
     }
 } 
