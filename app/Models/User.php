@@ -43,5 +43,5 @@ final class User extends Authenticatable
      */
     protected $casts = [
         'role' => 'string',
-    ];
+        ];
 }
