@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\VerifyPinRequest;
 use App\Models\User;
 use App\Services\EmailVerificationService;
 use Illuminate\Http\JsonResponse;
@@ -40,28 +41,51 @@ final class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        $user = User::where('email', $request->input('email'))->firstOrFail();
+        $this->emailVerificationService->sendVerificationPin($user);
+
+        return response()->json([
+            'message' => 'Verification PIN has been sent to your email.',
+        ]);
+    }
+
+    public function verifyPin(VerifyPinRequest $request): JsonResponse
+    {
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'email' => ['User not found.'],
+            ]);
+        }
+
+        if (!$this->emailVerificationService->verifyPin($user, $request->pin)) {
+            throw ValidationException::withMessages([
+                'pin' => ['Invalid or expired PIN.'],
+            ]);
+        }
+
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Login successful',
+            'token' => $token,
             'user' => $user,
-            'token' => $token
         ]);
     }
 
     public function logout(): JsonResponse
     {
-        auth()->user()->currentAccessToken()->delete();
+        Auth::user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Successfully logged out'
+            'message' => 'Successfully logged out.',
         ]);
     }
 } 

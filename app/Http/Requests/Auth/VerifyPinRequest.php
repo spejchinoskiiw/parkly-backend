@@ -6,7 +6,7 @@ namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class LoginRequest extends FormRequest
+final class VerifyPinRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,7 +17,7 @@ final class LoginRequest extends FormRequest
     {
         return [
             'email' => ['required', 'email', 'regex:/^[^@]+@iwconnect\.com$/'],
-            'password' => ['required', 'string'],
+            'pin' => ['required', 'string', 'size:6'],
         ];
     }
 
@@ -25,6 +25,7 @@ final class LoginRequest extends FormRequest
     {
         return [
             'email.regex' => 'Only @iwconnect.com email addresses are allowed.',
+            'pin.size' => 'The PIN must be exactly 6 digits.',
         ];
     }
 } 
