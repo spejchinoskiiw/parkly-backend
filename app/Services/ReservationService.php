@@ -128,7 +128,7 @@ final class ReservationService
      * 
      * @param int $facilityId The facility ID
      * @param Carbon $date The date to check availability for
-     * @return array<int, array<string, string>> Array of parking spots with their available time slots
+     * @return array<int, array<string, mixed>> Array of parking spots with their available time slots and all_day flag
      */
     public function getAvailableSpotsWithTimeSlots(int $facilityId, Carbon $date): array
     {
@@ -166,7 +166,15 @@ final class ReservationService
             
             // Add to result if there are available time slots
             if (!empty($availableTimeSlots)) {
-                $availableSpotsWithTimeSlots[$parkingSpot->spot_number] = $availableTimeSlots;
+                // Check if there's a single time slot covering the entire work day
+                $isAllDay = count($availableTimeSlots) === 1 && 
+                            $availableTimeSlots[0]['start'] === $workDayStart->format('Y-m-d H:i:s') && 
+                            $availableTimeSlots[0]['end'] === $workDayEnd->format('Y-m-d H:i:s');
+                
+                $availableSpotsWithTimeSlots[$parkingSpot->spot_number] = [
+                    'time_slots' => $availableTimeSlots,
+                    'all_day' => $isAllDay,
+                ];
             }
         }
         

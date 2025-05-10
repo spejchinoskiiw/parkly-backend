@@ -203,4 +203,63 @@ class ReservationServiceTest extends TestCase
         $this->assertTrue($reservations->contains('id', $reservation1->id));
         $this->assertTrue($reservations->contains('id', $reservation2->id));
     }
+
+    public function test_get_available_spots_with_time_slots(): void
+    {
+        // Create a facility
+        $facility = Facility::factory()->create();
+        
+        // Create two parking spots
+        $spot1 = ParkingSpot::factory()->create([
+            'facility_id' => $facility->id,
+            'spot_number' => 1,
+        ]);
+        
+        $spot2 = ParkingSpot::factory()->create([
+            'facility_id' => $facility->id,
+            'spot_number' => 2,
+        ]);
+        
+        // Set fixed date for testing
+        $testDate = Carbon::parse('2023-05-20');
+        $workStart = Carbon::parse('2023-05-20 08:00:00');
+        $workEnd = Carbon::parse('2023-05-20 17:00:00');
+        
+        // Create a reservation for spot 1 from 13:00 to 15:00
+        Reservation::factory()->create([
+            'user_id' => $this->user->id,
+            'parking_spot_id' => $spot1->id,
+            'start_time' => Carbon::parse('2023-05-20 13:00:00'),
+            'end_time' => Carbon::parse('2023-05-20 15:00:00'),
+            'type' => 'scheduled',
+        ]);
+        
+        // Get available spots
+        $availableSpots = $this->reservationService->getAvailableSpotsWithTimeSlots($facility->id, $testDate);
+        
+        // Verify structure
+        $this->assertIsArray($availableSpots);
+        $this->assertArrayHasKey('1', $availableSpots);
+        $this->assertArrayHasKey('2', $availableSpots);
+        
+        // Check that both spots have the expected structure
+        $this->assertArrayHasKey('time_slots', $availableSpots[1]);
+        $this->assertArrayHasKey('all_day', $availableSpots[1]);
+        $this->assertArrayHasKey('time_slots', $availableSpots[2]);
+        $this->assertArrayHasKey('all_day', $availableSpots[2]);
+        
+        // Verify spot 1 has the right time slots and is not all day
+        $this->assertCount(2, $availableSpots[1]['time_slots']);
+        $this->assertEquals($workStart->format('Y-m-d H:i:s'), $availableSpots[1]['time_slots'][0]['start']);
+        $this->assertEquals(Carbon::parse('2023-05-20 13:00:00')->format('Y-m-d H:i:s'), $availableSpots[1]['time_slots'][0]['end']);
+        $this->assertEquals(Carbon::parse('2023-05-20 15:00:00')->format('Y-m-d H:i:s'), $availableSpots[1]['time_slots'][1]['start']);
+        $this->assertEquals($workEnd->format('Y-m-d H:i:s'), $availableSpots[1]['time_slots'][1]['end']);
+        $this->assertFalse($availableSpots[1]['all_day']);
+        
+        // Verify spot 2 has one time slot for the whole day and is marked as all day
+        $this->assertCount(1, $availableSpots[2]['time_slots']);
+        $this->assertEquals($workStart->format('Y-m-d H:i:s'), $availableSpots[2]['time_slots'][0]['start']);
+        $this->assertEquals($workEnd->format('Y-m-d H:i:s'), $availableSpots[2]['time_slots'][0]['end']);
+        $this->assertTrue($availableSpots[2]['all_day']);
+    }
 } 

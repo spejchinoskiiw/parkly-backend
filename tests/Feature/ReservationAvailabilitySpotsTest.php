@@ -59,22 +59,24 @@ class ReservationAvailabilitySpotsTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
-                    '1' => ['*' => ['start', 'end']],
-                    '2' => ['*' => ['start', 'end']],
+                    '1' => ['time_slots', 'all_day'],
+                    '2' => ['time_slots', 'all_day'],
                 ],
             ]);
         
-        // Verify that spot 1 has two time slots: 8am-1pm and 3pm-5pm
-        $this->assertEquals(2, count($response->json('data.1')));
-        $this->assertEquals($workStart->format('Y-m-d H:i:s'), $response->json('data.1.0.start'));
-        $this->assertEquals(Carbon::parse('2023-05-20 13:00:00')->format('Y-m-d H:i:s'), $response->json('data.1.0.end'));
-        $this->assertEquals(Carbon::parse('2023-05-20 15:00:00')->format('Y-m-d H:i:s'), $response->json('data.1.1.start'));
-        $this->assertEquals($workEnd->format('Y-m-d H:i:s'), $response->json('data.1.1.end'));
+        // Verify that spot 1 has two time slots: 8am-1pm and 3pm-5pm and is not all day
+        $this->assertEquals(2, count($response->json('data.1.time_slots')));
+        $this->assertEquals($workStart->format('Y-m-d H:i:s'), $response->json('data.1.time_slots.0.start'));
+        $this->assertEquals(Carbon::parse('2023-05-20 13:00:00')->format('Y-m-d H:i:s'), $response->json('data.1.time_slots.0.end'));
+        $this->assertEquals(Carbon::parse('2023-05-20 15:00:00')->format('Y-m-d H:i:s'), $response->json('data.1.time_slots.1.start'));
+        $this->assertEquals($workEnd->format('Y-m-d H:i:s'), $response->json('data.1.time_slots.1.end'));
+        $this->assertFalse($response->json('data.1.all_day'));
         
-        // Verify that spot 2 has one time slot: the entire day
-        $this->assertEquals(1, count($response->json('data.2')));
-        $this->assertEquals($workStart->format('Y-m-d H:i:s'), $response->json('data.2.0.start'));
-        $this->assertEquals($workEnd->format('Y-m-d H:i:s'), $response->json('data.2.0.end'));
+        // Verify that spot 2 has one time slot: the entire day and is marked as all day
+        $this->assertEquals(1, count($response->json('data.2.time_slots')));
+        $this->assertEquals($workStart->format('Y-m-d H:i:s'), $response->json('data.2.time_slots.0.start'));
+        $this->assertEquals($workEnd->format('Y-m-d H:i:s'), $response->json('data.2.time_slots.0.end'));
+        $this->assertTrue($response->json('data.2.all_day'));
     }
     
     public function test_validation_errors_are_returned(): void

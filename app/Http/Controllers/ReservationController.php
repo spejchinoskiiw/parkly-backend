@@ -93,71 +93,8 @@ final class ReservationController extends Controller
     /**
      * Get available parking spots with time slots for a specific date and facility.
      * 
-     * @OA\Get(
-     *     path="/api/available-spots",
-     *     summary="Get available parking spots with time slots",
-     *     description="Returns a list of available parking spots with their available time slots for a specific date and facility",
-     *     operationId="getAvailableSpots",
-     *     tags={"Reservations"},
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="facility_id",
-     *         in="query",
-     *         description="ID of the facility",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Parameter(
-     *         name="date",
-     *         in="query",
-     *         description="Date to check availability for (format: Y-m-d)",
-     *         required=true,
-     *         @OA\Schema(type="string", format="date")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 description="Available spots with time slots",
-     *                 example={
-     *                     "1": {
-     *                         {"start": "2023-05-20 08:00:00", "end": "2023-05-20 13:00:00"},
-     *                         {"start": "2023-05-20 15:00:00", "end": "2023-05-20 17:00:00"}
-     *                     },
-     *                     "2": {
-     *                         {"start": "2023-05-20 08:00:00", "end": "2023-05-20 17:00:00"}
-     *                     }
-     *                 }
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="message", type="string", example="Unauthenticated.")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
-     *             @OA\Property(
-     *                 property="errors",
-     *                 type="object",
-     *                 @OA\Property(property="facility_id", type="array", @OA\Items(type="string", example="The facility id field is required.")),
-     *                 @OA\Property(property="date", type="array", @OA\Items(type="string", example="The date field is required."))
-     *             )
-     *         )
-     *     )
-     * )
+     * This endpoint is documented in:
+     * @see \App\Http\Controllers\Api\Annotations\ReservationAnnotations::getAvailableSpots()
      * 
      * @param GetAvailableSpotsRequest $request
      * @return JsonResponse
