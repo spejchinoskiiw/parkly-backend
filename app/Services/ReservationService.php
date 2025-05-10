@@ -172,7 +172,7 @@ final class ReservationService
                             $availableTimeSlots[0]['end'] === $workDayEnd->format('Y-m-d H:i:s');
                 
                 $availableSpotsWithTimeSlots[$parkingSpot->spot_number] = [
-                    'id' => $parkingSpot->id,
+                    'parking_spot_id' => $parkingSpot->id,
                     'time_slots' => $availableTimeSlots,
                     'all_day' => $isAllDay,
                 ];

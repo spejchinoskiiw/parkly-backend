@@ -202,7 +202,7 @@ class ReservationAnnotations
      *                 description="Available spots with time slots",
      *                 example={
      *                     "1": {
-     *                         "id": 5,
+     *                         "parking_spot_id": 5,
      *                         "time_slots": {
      *                             {"start": "2023-05-20 08:00:00", "end": "2023-05-20 13:00:00"},
      *                             {"start": "2023-05-20 15:00:00", "end": "2023-05-20 17:00:00"}
@@ -210,7 +210,7 @@ class ReservationAnnotations
      *                         "all_day": false
      *                     },
      *                     "2": {
-     *                         "id": 8,
+     *                         "parking_spot_id": 8,
      *                         "time_slots": {
      *                             {"start": "2023-05-20 08:00:00", "end": "2023-05-20 17:00:00"}
      *                         },
