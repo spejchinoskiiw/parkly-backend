@@ -10,7 +10,7 @@
     },
     "servers": [
         {
-            "url": "http://16.171.224.141",
+            "url": "http://16.171.224.141/api",
             "description": "API Server"
         },
         {
