@@ -15,7 +15,7 @@ final class UserSeeder extends Seeder
         // Create admin user
         User::create([
             'name' => 'Admin User',
-            'email' => 'admin@iwconnect.com',
+            'email' => 'stefan.pejchinoski@iwconnect.com',
             'password' => Hash::make('admin123'),
             'role' => 'admin',
             'email_verified_at' => now(),
@@ -24,7 +24,7 @@ final class UserSeeder extends Seeder
         // Create manager user
         User::create([
             'name' => 'Manager User',
-            'email' => 'manager@iwconnect.com',
+            'email' => 'stefan.pejchinoski@iwconnect.com',
             'password' => Hash::make('manager123'),
             'role' => 'manager',
             'email_verified_at' => now(),
@@ -33,7 +33,7 @@ final class UserSeeder extends Seeder
         // Create regular user
         User::create([
             'name' => 'Regular User',
-            'email' => 'user@iwconnect.com',
+            'email' => 'stefan.pejchinoski@iwconnect.com',
             'password' => Hash::make('user123'),
             'role' => 'user',
             'email_verified_at' => now(),
