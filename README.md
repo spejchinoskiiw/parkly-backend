@@ -75,6 +75,22 @@ This repository contains the Laravel-based backend API for the Parkly parking re
    php artisan serve
    ```
 
+### QA Testing Environment Setup
+
+For QA testing purposes, we provide a dedicated seeder that creates a standardized dataset:
+
+```
+php artisan db:seed-qa
+```
+
+This command will populate the database with:
+- 3 facilities (Skopje, Bitola, Prilep)
+- 3 users with different roles (admin@iwconnect.com, manager@iwconnect.com, user@iwconnect.com)
+- 10 parking spots per facility
+- 1 sample reservation
+
+For detailed information about the QA testing environment, see [QA Testing Documentation](docs/QA_TESTING.md).
+
 ## Project Structure
 
 - `app/Models/` - Database models
