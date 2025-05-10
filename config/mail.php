@@ -100,6 +100,10 @@ return [
         'resend' => [
             'transport' => 'resend',
         ],
+
+        'postmark' => [
+            'token' => env('POSTMARK_TOKEN'),
+        ],
     ],
 
     /*

@@ -23,7 +23,7 @@ final class EmailVerificationService
                 'expires_at' => Carbon::now()->addMinutes(10),
             ]
         );
-        try {
+        try { // TODO: Fails but we dont care much  for demo purposes
             Mail::to($user->email)->send(new EmailVerificationPin($user, $pin));
         }
         catch (Throwable $e) {
