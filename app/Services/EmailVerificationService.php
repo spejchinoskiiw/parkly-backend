@@ -22,8 +22,12 @@ final class EmailVerificationService
                 'expires_at' => Carbon::now()->addMinutes(10),
             ]
         );
-
-        Mail::to($user->email)->send(new EmailVerificationPin($user, $pin));
+        try {
+            Mail::to($user->email)->send(new EmailVerificationPin($user, $pin));
+        }
+        catch (Exception $e) {
+            Log::error('Error sending verification pin: ' . $e->getMessage());
+        }
     }
 
     public function verifyPin(User $user, string $pin): bool
