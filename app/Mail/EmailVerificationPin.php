@@ -18,7 +18,7 @@ final class EmailVerificationPin extends Mailable
 
     public function __construct(
         public readonly User $user,
-        public readonly string $pin
+        public readonly int $pin
     ) {}
 
     public function envelope(): Envelope
@@ -35,7 +35,7 @@ final class EmailVerificationPin extends Mailable
             text: 'emails.verification-pin-text',
             with: [
                 'name' => $this->user->name,
-                'pin' => $this->pin,
+                'pin' => (string)$this->pin,
                 'expires_at' => Carbon::now()->addMinutes(10)->format('H:i:s'),
             ]
         );
