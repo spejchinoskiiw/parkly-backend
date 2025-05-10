@@ -12,13 +12,13 @@ return [
                 /*
                  * Route for accessing api documentation interface
                  */
-                'api' => 'api/documentation',
+                'api' => 'docs',
             ],
             'paths' => [
                 /*
                  * Edit to include full URL in ui for assets
                  */
-                'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
+                'use_absolute_path' => true,
 
                 /*
                 * Edit to set path where swagger ui assets should be stored
@@ -38,7 +38,7 @@ return [
                 /*
                  * Set this to `json` or `yaml` to determine which documentation file to use in UI
                  */
-                'format_to_use_for_docs' => env('L5_FORMAT_TO_USE_FOR_DOCS', 'json'),
+                'format_to_use_for_docs' => 'json',
 
                 /*
                  * Absolute paths to directory containing the swagger annotations are stored.
@@ -190,12 +190,12 @@ return [
          * Set this to `true` in development mode so that docs would be regenerated on each request
          * Set this to `false` to disable swagger generation on production
          */
-        'generate_always' => env('L5_SWAGGER_GENERATE_ALWAYS', true),
+        'generate_always' => true,
 
         /*
          * Set this to `true` to generate a copy of documentation in yaml format
          */
-        'generate_yaml_copy' => env('L5_SWAGGER_GENERATE_YAML_COPY', false),
+        'generate_yaml_copy' => false,
 
         /*
          * Edit to trust the proxy's ip address - needed for AWS Load Balancer
@@ -213,7 +213,7 @@ return [
          * Apply a sort to the operation list of each API. It can be 'alpha' (sort by paths alphanumerically),
          * 'method' (sort by HTTP method) or null (by default, the order is returned by the server).
          */
-        'operations_sort' => env('L5_SWAGGER_OPERATIONS_SORT', null),
+        'operations_sort' => null,
 
         /*
          * Pass the validatorUrl parameter to SwaggerUi init on the JS side.
@@ -233,7 +233,7 @@ return [
                  * 'full' (expands the tags and operations),
                  * 'none' (expands nothing).
                  */
-                'doc_expansion' => env('L5_SWAGGER_UI_DOC_EXPANSION', 'none'),
+                'doc_expansion' => 'none',
 
                 /**
                  * If set, enables filtering. The top bar will show an edit box that
@@ -262,7 +262,7 @@ return [
          * Constants which can be used in annotations
          */
         'constants' => [
-            'L5_SWAGGER_CONST_HOST' => env('L5_SWAGGER_CONST_HOST', 'http://localhost:8000'),
+            'L5_SWAGGER_CONST_HOST' => env('L5_SWAGGER_CONST_HOST', 'http://16.171.224.141'),
         ],
     ],
 ];

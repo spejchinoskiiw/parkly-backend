@@ -46,5 +46,8 @@ jobs:
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
+          php artisan l5-swagger:generate
+          sudo chown -R apache:apache storage/api-docs
+          sudo chmod -R 755 storage/api-docs
           sudo systemctl restart php-fpm
           sudo systemctl restart httpd 
