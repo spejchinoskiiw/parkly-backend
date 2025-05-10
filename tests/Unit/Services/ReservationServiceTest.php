@@ -143,4 +143,64 @@ class ReservationServiceTest extends TestCase
         
         $this->assertNull($reservation);
     }
+
+    public function test_get_user_reservations_for_date(): void
+    {
+        // Create a facility
+        $facility = Facility::factory()->create();
+        
+        // Create a parking spot
+        $parkingSpot = ParkingSpot::factory()->create([
+            'facility_id' => $facility->id,
+        ]);
+        
+        // Create a user
+        $user = User::factory()->create();
+        
+        $targetDate = Carbon::today();
+        
+        // Create reservations for the user on the target date
+        $reservation1 = Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $targetDate->copy()->setHour(9),
+            'end_time' => $targetDate->copy()->setHour(12),
+            'type' => 'scheduled',
+        ]);
+        
+        $reservation2 = Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $targetDate->copy()->setHour(14),
+            'end_time' => $targetDate->copy()->setHour(17),
+            'type' => 'scheduled',
+        ]);
+        
+        // Create a reservation for a different date
+        Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $targetDate->copy()->addDay()->setHour(10),
+            'end_time' => $targetDate->copy()->addDay()->setHour(15),
+            'type' => 'scheduled',
+        ]);
+        
+        // Create a reservation for a different user
+        $otherUser = User::factory()->create();
+        Reservation::factory()->create([
+            'user_id' => $otherUser->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $targetDate->copy()->setHour(11),
+            'end_time' => $targetDate->copy()->setHour(13),
+            'type' => 'scheduled',
+        ]);
+        
+        // Test retrieving reservations for the target date
+        $reservations = $this->reservationService->getUserReservationsForDate($user, $targetDate);
+        
+        // Assert that only the reservations for the user on the target date are returned
+        $this->assertCount(2, $reservations);
+        $this->assertTrue($reservations->contains('id', $reservation1->id));
+        $this->assertTrue($reservations->contains('id', $reservation2->id));
+    }
 } 

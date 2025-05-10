@@ -95,4 +95,77 @@ class ReservationAnnotations
     {
         // This is a dummy method for Swagger annotations only
     }
+    
+    /**
+     * @OA\Get(
+     *     path="/api/reservations/reservationsForDate",
+     *     summary="Get user reservations for a specific date",
+     *     description="Returns all reservations for the authenticated user on a given date",
+     *     operationId="getUserReservationsForDate",
+     *     tags={"Reservations"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="date",
+     *         in="query",
+     *         description="Date to get reservations for (format: Y-m-d)",
+     *         required=true,
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="user_id", type="integer", example=1),
+     *                     @OA\Property(property="parking_spot_id", type="integer", example=1),
+     *                     @OA\Property(property="start_time", type="string", format="date-time", example="2023-05-20 09:00:00"),
+     *                     @OA\Property(property="end_time", type="string", format="date-time", example="2023-05-20 17:00:00"),
+     *                     @OA\Property(property="type", type="string", example="scheduled"),
+     *                     @OA\Property(
+     *                         property="parking_spot",
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="facility_id", type="integer", example=1),
+     *                         @OA\Property(property="spot_number", type="integer", example=1),
+     *                         @OA\Property(
+     *                             property="facility",
+     *                             type="object",
+     *                             @OA\Property(property="id", type="integer", example=1),
+     *                             @OA\Property(property="name", type="string", example="Skopje Office")
+     *                         )
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(ref="#/components/schemas/UnauthorizedError")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 @OA\Property(property="date", type="array", @OA\Items(type="string", example="The date field is required."))
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function getUserReservationsForDate()
+    {
+        // This is a dummy method for Swagger annotations only
+    }
 }

@@ -42,6 +42,10 @@ use Illuminate\Routing\Controller as BaseController;
  *     name="Parking Spots",
  *     description="API Endpoints for managing parking spots within facilities"
  * )
+ * @OA\Tag(
+ *     name="Reservations",
+ *     description="API Endpoints for managing parking reservations"
+ * )
  */
 class Controller extends BaseController
 {

@@ -226,4 +226,36 @@ final class ReservationService
         
         return $availableSlots;
     }
+
+    /**
+     * Get all reservations for a user on a specific date.
+     * 
+     * @param User $user The user to get reservations for
+     * @param Carbon $date The date to get reservations for
+     * @return Collection<int, Reservation> Collection of user's reservations for the date
+     */
+    public function getUserReservationsForDate(User $user, Carbon $date): Collection
+    {
+        $startOfDay = $date->copy()->startOfDay();
+        $endOfDay = $date->copy()->endOfDay();
+        
+        return Reservation::where('user_id', $user->id)
+            ->where(function (Builder $query) use ($startOfDay, $endOfDay) {
+                // Get reservations that start on the given date
+                $query->whereBetween('start_time', [$startOfDay, $endOfDay])
+                    // Or end on the given date
+                    ->orWhereBetween('end_time', [$startOfDay, $endOfDay])
+                    // Or span across the given date
+                    ->orWhere(function (Builder $query) use ($startOfDay, $endOfDay) {
+                        $query->where('start_time', '<', $startOfDay)
+                            ->where(function (Builder $query) use ($endOfDay) {
+                                $query->where('end_time', '>', $endOfDay)
+                                    ->orWhereNull('end_time');
+                            });
+                    });
+            })
+            ->with(['parkingSpot.facility'])
+            ->orderBy('start_time')
+            ->get();
+    }
 } 

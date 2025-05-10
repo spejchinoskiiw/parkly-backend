@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreateOnDemandReservationRequest;
 use App\Http\Requests\CreateScheduledReservationRequest;
 use App\Http\Requests\GetAvailableSpotsRequest;
+use App\Http\Requests\GetUserReservationsForDateRequest;
 use App\Models\ParkingSpot;
 use App\Services\ReservationService;
 use Carbon\Carbon;
@@ -98,7 +99,7 @@ final class ReservationController extends Controller
      *     description="Returns a list of available parking spots with their available time slots for a specific date and facility",
      *     operationId="getAvailableSpots",
      *     tags={"Reservations"},
-     *     security={{"sanctum": {}}},
+     *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
      *         name="facility_id",
      *         in="query",
@@ -135,6 +136,14 @@ final class ReservationController extends Controller
      *         )
      *     ),
      *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Unauthenticated.")
+     *         )
+     *     ),
+     *     @OA\Response(
      *         response=422,
      *         description="Validation error",
      *         @OA\JsonContent(
@@ -164,6 +173,30 @@ final class ReservationController extends Controller
         
         return response()->json([
             'data' => $availableSpots,
+        ]);
+    }
+
+    /**
+     * Get all reservations for the authenticated user for a specific date.
+     * 
+     * This endpoint is documented in:
+     * @see \App\Http\Controllers\Api\Annotations\ReservationAnnotations::getUserReservationsForDate()
+     * 
+     * @param GetUserReservationsForDateRequest $request
+     * @return JsonResponse
+     */
+    public function getUserReservationsForDate(GetUserReservationsForDateRequest $request): JsonResponse
+    {
+        $validatedData = $request->validated();
+        $date = Carbon::parse($validatedData['date']);
+        
+        $reservations = $this->reservationService->getUserReservationsForDate(
+            $request->user(),
+            $date
+        );
+        
+        return response()->json([
+            'data' => $reservations,
         ]);
     }
 } 
