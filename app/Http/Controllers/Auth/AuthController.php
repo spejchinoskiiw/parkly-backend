@@ -76,7 +76,7 @@ final class AuthController extends Controller
             ]);
         }
 
-       // $this->emailVerificationService->sendVerificationPin($user);
+       $this->emailVerificationService->sendVerificationPin($user);
 
         return response()->json([
             'message' => 'Verification PIN has been sent to your email.',
