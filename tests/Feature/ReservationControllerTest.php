@@ -346,4 +346,103 @@ class ReservationControllerTest extends TestCase
                 'message' => 'No active reservation found for this parking spot',
             ]);
     }
+
+    public function test_user_can_get_active_reservations(): void
+    {
+        // Create a facility
+        $facility = Facility::factory()->create();
+        
+        // Create a parking spot
+        $parkingSpot = ParkingSpot::factory()->create([
+            'facility_id' => $facility->id,
+        ]);
+        
+        // Create a user
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        
+        $now = Carbon::now();
+        
+        // Create an active scheduled reservation (current time is between start and end)
+        $activeScheduled = Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $now->copy()->subHour(),
+            'end_time' => $now->copy()->addHour(),
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Create an active on-demand reservation (started but not ended)
+        $activeOnDemand = Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $now->copy()->subHour(),
+            'end_time' => null,
+            'type' => ReservationType::ONDEMAND,
+        ]);
+        
+        // Create a pending reservation (start time in the future)
+        $pendingReservation = Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $now->copy()->addHours(2),
+            'end_time' => $now->copy()->addHours(4),
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Create a past reservation (ended)
+        Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $now->copy()->subHours(3),
+            'end_time' => $now->copy()->subHour(),
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Create a reservation for another user (should not be returned)
+        Reservation::factory()->create([
+            'user_id' => $otherUser->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $now->copy()->subHour(),
+            'end_time' => $now->copy()->addHour(),
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Test the active reservations endpoint
+        $response = $this->actingAs($user)
+            ->getJson('/api/reservations/active');
+        
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id',
+                        'user_id',
+                        'parking_spot_id',
+                        'start_time',
+                        'end_time',
+                        'type',
+                        'parkingSpot',
+                    ],
+                ],
+            ]);
+        
+        // Should return 3 reservations: 1 active scheduled, 1 active on-demand, and 1 pending
+        $this->assertCount(3, $response->json('data'));
+        
+        // Extract the IDs from the response
+        $responseIds = collect($response->json('data'))->pluck('id')->toArray();
+        
+        // Check that the active scheduled, active on-demand, and pending reservations are in the response
+        $this->assertContains($activeScheduled->id, $responseIds);
+        $this->assertContains($activeOnDemand->id, $responseIds);
+        $this->assertContains($pendingReservation->id, $responseIds);
+    }
+    
+    public function test_active_reservations_endpoint_requires_authentication(): void
+    {
+        $response = $this->getJson('/api/reservations/active');
+        
+        $response->assertStatus(401);
+    }
 } 

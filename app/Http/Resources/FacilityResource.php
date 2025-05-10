@@ -21,7 +21,7 @@ final class FacilityResource extends JsonResource
             'name' => $this->name,
             'parking_spot_count' => $this->parking_spot_count,
             'manager_id' => $this->manager_id,
-            'manager' => $this->when($this->relationLoaded('manager') && $this->manager !== null, function () {
+            'manager' => $this->whenLoadedAndNotNull('manager', function () {
                 return [
                     'id' => $this->manager->id,
                     'name' => $this->manager->name,
@@ -31,5 +31,20 @@ final class FacilityResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+    
+    /**
+     * Safely include a loaded relationship in the resource, handling null relations.
+     *
+     * @param string $relation The name of the relation
+     * @param callable $value The value to include when the relation is loaded and not null
+     * @return mixed|null The value or null when the relation isn't loaded or is null
+     */
+    protected function whenLoadedAndNotNull(string $relation, callable $value): mixed
+    {
+        return $this->when(
+            $this->relationLoaded($relation) && $this->{$relation} !== null,
+            $value
+        );
     }
 }

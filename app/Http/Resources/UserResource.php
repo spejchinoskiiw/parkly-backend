@@ -22,7 +22,7 @@ final class UserResource extends JsonResource
             'email' => $this->email,
             'role' => $this->role,
             'facility_id' => $this->facility_id,
-            'facility' => $this->when($this->relationLoaded('facility') && $this->facility !== null, function () {
+            'facility' => $this->whenLoadedAndNotNull('facility', function () {
                 return [
                     'id' => $this->facility->id,
                     'name' => $this->facility->name,
@@ -32,5 +32,20 @@ final class UserResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+    
+    /**
+     * Safely include a loaded relationship in the resource, handling null relations.
+     *
+     * @param string $relation The name of the relation
+     * @param callable $value The value to include when the relation is loaded and not null
+     * @return mixed|null The value or null when the relation isn't loaded or is null
+     */
+    protected function whenLoadedAndNotNull(string $relation, callable $value): mixed
+    {
+        return $this->when(
+            $this->relationLoaded($relation) && $this->{$relation} !== null,
+            $value
+        );
     }
 }

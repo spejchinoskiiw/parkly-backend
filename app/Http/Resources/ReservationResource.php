@@ -23,14 +23,29 @@ final class ReservationResource extends JsonResource
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
             'type' => $this->type,
-            'user' => $this->when($this->relationLoaded('user') && $this->user !== null, function () {
+            'user' => $this->whenLoadedAndNotNull('user', function () {
                 return new UserResource($this->user);
             }),
-            'parkingSpot' => $this->when($this->relationLoaded('parkingSpot') && $this->parkingSpot !== null, function () {
+            'parkingSpot' => $this->whenLoadedAndNotNull('parkingSpot', function () {
                 return new ParkingSpotResource($this->parkingSpot);
             }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+    
+    /**
+     * Safely include a loaded relationship in the resource, handling null relations.
+     *
+     * @param string $relation The name of the relation
+     * @param callable $value The value to include when the relation is loaded and not null
+     * @return mixed|null The value or null when the relation isn't loaded or is null
+     */
+    protected function whenLoadedAndNotNull(string $relation, callable $value): mixed
+    {
+        return $this->when(
+            $this->relationLoaded($relation) && $this->{$relation} !== null,
+            $value
+        );
     }
 } 
