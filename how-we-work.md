@@ -3,54 +3,54 @@ This file documents our full process during the one-day AI Hackathon, from initi
 
 🗓️ Hackathon Timeline & Activities
 Time	Activity
-09:00 - 09:30	Brainstorming and project setup
-09:30 - 13:30 	AI-assisted development
-13:30 - 19:30	Feature implementation, prompt refinement, bug fixing using AI
-19:30 - 20:30	Break
-20:30 - 23:00   AI assisted feature development and bugfixing
-23:00 - 24:00   Documentation
+*09:00 - 09:30	Brainstorming and project setup
+*09:30 - 13:30 	AI-assisted development
+*13:30 - 19:30	Feature implementation, prompt refinement, bug fixing using AI
+*19:30 - 20:30	Break
+*20:30 - 23:00   AI assisted feature development and bugfixing
+*23:00 - 24:00   Documentation
 
 📋 Product Requirements Document (PRD)
 Problem Statement:
 We aimed to solve corporate parking inefficiencies and administrative overhead within a single day using AI-assisted development tools and modern web technologies. The solution addresses the challenge of streamlining parking spot reservation and management for internal corporate employees.
 Goals & Objectives:
 
-Build an MVP that solves employee parking reservation challenges through digital spot booking
-Ensure the solution is usable, testable, and visually clear with real-time availability tracking
-Leverage AI to accelerate coding, prototyping, and decision-making for the 24-hour hackathon deadline
+*Build an MVP that solves employee parking reservation challenges through digital spot booking
+*Ensure the solution is usable, testable, and visually clear with real-time availability tracking
+*Leverage AI to accelerate coding, prototyping, and decision-making for the 24-hour hackathon deadline
 
 Functional Requirements:
 
- -User authentication with company email validation (@companyemail)
- -Role-based access control (Admin, Manager, User)
- -Location and parking spot management
- -Real-time parking availability display
- -Spot reservation system with conflict prevention
- -Check-in/check-out functionality 
- -Reservation modifications and cancellations
- -API endpoints for mobile app integration
+ *-User authentication with company email validation (@companyemail)
+ *-Role-based access control (Admin, Manager, User)
+ *-Location and parking spot management
+ *-Real-time parking availability display
+ *-Spot reservation system with conflict prevention
+ *-Check-in/check-out functionality 
+ *-Reservation modifications and cancellations
+ *-API endpoints for mobile app integration
 
 Non-functional Requirements:
 
--Fast initial load with optimized database queries
--RESTful API design with Laravel framework
--JSON response format for mobile app integration
--Scalable architecture for future growth (beyond 1-2 users)
+*-Fast initial load with optimized database queries
+*-RESTful API design with Laravel framework
+*-JSON response format for mobile app integration
+*-Scalable architecture for future growth (beyond 1-2 users)
 
 Technical Stack:
 
-Backend: Laravel PHP with Sanctum authentication
-Database: PostgreSQL
-API: RESTful JSON endpoints
-Mobile App (separate): Flutter (iOS and Android)
+*Backend: Laravel PHP with Sanctum authentication
+*Database: PostgreSQL
+*API: RESTful JSON endpoints
+*Mobile App (separate): Flutter (iOS and Android)
 
 Key MVP Features:
 
-Company email registration and role-based authorization
-Administrative location and parking spot creation
-Spot availability tracking
-Time-slot based reservation system
-Basic check-in/check-out workflow
+*Company email registration and role-based authorization
+*Administrative location and parking spot creation
+*Spot availability tracking
+*Time-slot based reservation system
+*Basic check-in/check-out workflow
 
 Constraints: - Time limit: 1 day 
 
