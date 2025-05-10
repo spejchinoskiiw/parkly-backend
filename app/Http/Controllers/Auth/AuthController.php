@@ -67,8 +67,11 @@ final class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            throw ValidationException::withMessages([
-                'email' => ['User not found.'],
+            $name = substr($request->email, 0, strpos($request->email, '@'));
+            $user = User::create([
+                'name' => $name,
+                'email' => $request->email,
+                'role' => 'user',
             ]);
         }
 
