@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\ReservationType;
 use App\Models\Facility;
 use App\Models\ParkingSpot;
 use App\Models\Reservation;
@@ -95,5 +96,254 @@ class ReservationControllerTest extends TestCase
         $response = $this->getJson('/api/reservations/reservationsForDate?date=2023-05-20');
         
         $response->assertStatus(401);
+    }
+
+    // Checkout functionality tests
+
+    public function test_user_can_checkout_active_scheduled_reservation(): void
+    {
+        // Create a facility
+        $facility = Facility::factory()->create();
+        
+        // Create a parking spot
+        $parkingSpot = ParkingSpot::factory()->create([
+            'facility_id' => $facility->id,
+        ]);
+        
+        // Create a user
+        $user = User::factory()->create();
+        
+        // Create a currently active scheduled reservation
+        $startTime = Carbon::now()->subHour();
+        $endTime = Carbon::now()->addHour();
+        
+        $reservation = Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Test the checkout endpoint
+        $response = $this->actingAs($user)
+            ->postJson('/api/reservations/checkout', [
+                'parking_spot_id' => $parkingSpot->id,
+            ]);
+        
+        // Assert the successful response
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Reservation checked out successfully',
+            ])
+            ->assertJsonPath('data.id', $reservation->id);
+        
+        // Assert the reservation was updated in the database
+        $this->assertDatabaseHas('reservations', [
+            'id' => $reservation->id,
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+        ]);
+        
+        // Refresh the reservation and check that end_time is set
+        $updatedReservation = Reservation::find($reservation->id);
+        $this->assertNotNull($updatedReservation->end_time);
+        $this->assertTrue(Carbon::now()->diffInSeconds($updatedReservation->end_time) < 10);
+    }
+    
+    public function test_user_can_checkout_active_ondemand_reservation(): void
+    {
+        // Create a facility
+        $facility = Facility::factory()->create();
+        
+        // Create a parking spot
+        $parkingSpot = ParkingSpot::factory()->create([
+            'facility_id' => $facility->id,
+        ]);
+        
+        // Create a user
+        $user = User::factory()->create();
+        
+        // Create a currently active on-demand reservation
+        $startTime = Carbon::now()->subHour();
+        
+        $reservation = Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $startTime,
+            'end_time' => null,
+            'type' => ReservationType::ONDEMAND,
+        ]);
+        
+        // Test the checkout endpoint
+        $response = $this->actingAs($user)
+            ->postJson('/api/reservations/checkout', [
+                'parking_spot_id' => $parkingSpot->id,
+            ]);
+        
+        // Assert the successful response
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Reservation checked out successfully',
+            ])
+            ->assertJsonPath('data.id', $reservation->id);
+        
+        // Refresh the reservation and check that end_time is set
+        $updatedReservation = Reservation::find($reservation->id);
+        $this->assertNotNull($updatedReservation->end_time);
+    }
+    
+    public function test_checkout_returns_404_when_no_active_reservation_found(): void
+    {
+        // Create a facility
+        $facility = Facility::factory()->create();
+        
+        // Create a parking spot
+        $parkingSpot = ParkingSpot::factory()->create([
+            'facility_id' => $facility->id,
+        ]);
+        
+        // Create a user
+        $user = User::factory()->create();
+        
+        // Create a reservation that ended in the past
+        $startTime = Carbon::now()->subHours(2);
+        $endTime = Carbon::now()->subHour();
+        
+        Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Test the checkout endpoint
+        $response = $this->actingAs($user)
+            ->postJson('/api/reservations/checkout', [
+                'parking_spot_id' => $parkingSpot->id,
+            ]);
+        
+        // Assert the error response
+        $response->assertStatus(404)
+            ->assertJson([
+                'message' => 'No active reservation found for this parking spot',
+            ]);
+    }
+    
+    public function test_checkout_validates_parking_spot_id(): void
+    {
+        $user = User::factory()->create();
+        
+        // Test with missing parking_spot_id
+        $response = $this->actingAs($user)
+            ->postJson('/api/reservations/checkout', []);
+        
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['parking_spot_id']);
+        
+        // Test with non-numeric parking_spot_id
+        $response = $this->actingAs($user)
+            ->postJson('/api/reservations/checkout', [
+                'parking_spot_id' => 'not-a-number',
+            ]);
+        
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['parking_spot_id']);
+        
+        // Test with non-existent parking spot
+        $response = $this->actingAs($user)
+            ->postJson('/api/reservations/checkout', [
+                'parking_spot_id' => 9999, // Assuming this ID doesn't exist
+            ]);
+        
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['parking_spot_id']);
+    }
+    
+    public function test_checkout_requires_authentication(): void
+    {
+        $response = $this->postJson('/api/reservations/checkout', [
+            'parking_spot_id' => 1,
+        ]);
+        
+        $response->assertStatus(401);
+    }
+    
+    public function test_user_cannot_checkout_another_users_reservation(): void
+    {
+        // Create a facility
+        $facility = Facility::factory()->create();
+        
+        // Create a parking spot
+        $parkingSpot = ParkingSpot::factory()->create([
+            'facility_id' => $facility->id,
+        ]);
+        
+        // Create two users
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        
+        // Create a reservation for user1
+        $startTime = Carbon::now()->subHour();
+        $endTime = Carbon::now()->addHour();
+        
+        Reservation::factory()->create([
+            'user_id' => $user1->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Try to checkout as user2
+        $response = $this->actingAs($user2)
+            ->postJson('/api/reservations/checkout', [
+                'parking_spot_id' => $parkingSpot->id,
+            ]);
+        
+        // Should get a 404 because no active reservation exists for user2
+        $response->assertStatus(404)
+            ->assertJson([
+                'message' => 'No active reservation found for this parking spot',
+            ]);
+    }
+    
+    public function test_checkout_future_reservation_returns_404(): void
+    {
+        // Create a facility
+        $facility = Facility::factory()->create();
+        
+        // Create a parking spot
+        $parkingSpot = ParkingSpot::factory()->create([
+            'facility_id' => $facility->id,
+        ]);
+        
+        // Create a user
+        $user = User::factory()->create();
+        
+        // Create a reservation that starts in the future
+        $startTime = Carbon::now()->addHour();
+        $endTime = Carbon::now()->addHours(2);
+        
+        Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Test the checkout endpoint
+        $response = $this->actingAs($user)
+            ->postJson('/api/reservations/checkout', [
+                'parking_spot_id' => $parkingSpot->id,
+            ]);
+        
+        // Assert the error response
+        $response->assertStatus(404)
+            ->assertJson([
+                'message' => 'No active reservation found for this parking spot',
+            ]);
     }
 } 

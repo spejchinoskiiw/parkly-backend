@@ -243,4 +243,71 @@ class ReservationAnnotations
     {
         // This is a dummy method for Swagger annotations only
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/reservations/checkout",
+     *     summary="Checkout from a parking spot",
+     *     description="End an active reservation for the authenticated user and a specific parking spot",
+     *     operationId="checkoutReservation",
+     *     tags={"Reservations"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Checkout details",
+     *         @OA\JsonContent(
+     *             required={"parking_spot_id"},
+     *             @OA\Property(property="parking_spot_id", type="integer", example=1, description="ID of the parking spot to checkout from")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reservation checked out successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Reservation checked out successfully"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="user_id", type="integer", example=1),
+     *                 @OA\Property(property="parking_spot_id", type="integer", example=1),
+     *                 @OA\Property(property="start_time", type="string", format="date-time", example="2023-05-20 09:00:00"),
+     *                 @OA\Property(property="end_time", type="string", format="date-time", example="2023-05-20 12:30:45"),
+     *                 @OA\Property(property="type", type="string", example="on_demand")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="No active reservation found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="No active reservation found for this parking spot")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(ref="#/components/schemas/UnauthorizedError")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 @OA\Property(property="parking_spot_id", type="array", @OA\Items(type="string", example="The parking spot id field is required."))
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function checkout()
+    {
+        // This is a dummy method for Swagger annotations only
+    }
 }

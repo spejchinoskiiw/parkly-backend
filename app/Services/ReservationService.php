@@ -266,4 +266,45 @@ final class ReservationService
             ->orderBy('start_time')
             ->get();
     }
+
+    /**
+     * Checkout (end) an active reservation for a user and parking spot.
+     * 
+     * @param User $user The user who is checking out
+     * @param int $parkingSpotId The ID of the parking spot to checkout from
+     * @return Reservation|null The updated reservation if successful, null if no active reservation found
+     */
+    public function checkoutReservation(User $user, int $parkingSpotId): ?Reservation
+    {
+        // Find an active reservation for the user and parking spot
+        $reservation = Reservation::where('user_id', $user->id)
+            ->where('parking_spot_id', $parkingSpotId)
+            ->where(function (Builder $query) {
+                $now = Carbon::now();
+                
+                // Get reservations where:
+                // 1. Current time is between start and end times (for scheduled reservations)
+                $query->where(function (Builder $query) use ($now) {
+                    $query->where('start_time', '<=', $now)
+                        ->where('end_time', '>=', $now);
+                })
+                // 2. OR it's an on-demand reservation that started but hasn't ended
+                ->orWhere(function (Builder $query) use ($now) {
+                    $query->where('start_time', '<=', $now)
+                        ->whereNull('end_time')
+                        ->where('type', ReservationType::ONDEMAND);
+                });
+            })
+            ->first();
+        
+        if (!$reservation) {
+            return null;
+        }
+        
+        // Set the end time to now for the reservation
+        $reservation->end_time = Carbon::now();
+        $reservation->save();
+        
+        return $reservation;
+    }
 } 

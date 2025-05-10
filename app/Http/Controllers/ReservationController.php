@@ -8,6 +8,7 @@ use App\Http\Requests\CreateOnDemandReservationRequest;
 use App\Http\Requests\CreateScheduledReservationRequest;
 use App\Http\Requests\GetAvailableSpotsRequest;
 use App\Http\Requests\GetUserReservationsForDateRequest;
+use App\Http\Requests\CheckoutReservationRequest;
 use App\Models\ParkingSpot;
 use App\Services\ReservationService;
 use Carbon\Carbon;
@@ -134,6 +135,37 @@ final class ReservationController extends Controller
         
         return response()->json([
             'data' => $reservations,
+        ]);
+    }
+
+    /**
+     * Checkout (end) an active reservation.
+     * 
+     * This endpoint is documented in:
+     * @see \App\Http\Controllers\Api\Annotations\ReservationAnnotations::checkout()
+     * 
+     * @param CheckoutReservationRequest $request
+     * @return JsonResponse
+     */
+    public function checkout(CheckoutReservationRequest $request): JsonResponse
+    {
+        $validatedData = $request->validated();
+        $parkingSpotId = (int) $validatedData['parking_spot_id'];
+        
+        $reservation = $this->reservationService->checkoutReservation(
+            $request->user(),
+            $parkingSpotId
+        );
+        
+        if (!$reservation) {
+            return response()->json([
+                'message' => 'No active reservation found for this parking spot',
+            ], 404);
+        }
+        
+        return response()->json([
+            'message' => 'Reservation checked out successfully',
+            'data' => $reservation,
         ]);
     }
 } 

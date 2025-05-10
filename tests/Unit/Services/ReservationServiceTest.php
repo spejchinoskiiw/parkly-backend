@@ -262,4 +262,99 @@ class ReservationServiceTest extends TestCase
         $this->assertEquals($workEnd->format('Y-m-d H:i:s'), $availableSpots[2]['time_slots'][0]['end']);
         $this->assertTrue($availableSpots[2]['all_day']);
     }
+
+    public function test_checkout_reservation_for_active_scheduled_reservation(): void
+    {
+        // Create a scheduled reservation that is currently active
+        $startTime = Carbon::now()->subHour();
+        $endTime = Carbon::now()->addHour();
+        
+        $reservation = Reservation::factory()->create([
+            'user_id' => $this->user->id,
+            'parking_spot_id' => $this->parkingSpot->id,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Checkout the reservation
+        $result = $this->reservationService->checkoutReservation($this->user, $this->parkingSpot->id);
+        
+        // Assert the reservation was updated
+        $this->assertNotNull($result);
+        $this->assertEquals($reservation->id, $result->id);
+        $this->assertNotNull($result->end_time);
+        $this->assertTrue(Carbon::now()->isSameDay($result->end_time));
+        
+        // Assert the end time was set to now (allow for 5 seconds difference for test execution)
+        $this->assertTrue(Carbon::now()->diffInSeconds($result->end_time) < 5);
+    }
+    
+    public function test_checkout_reservation_for_active_ondemand_reservation(): void
+    {
+        // Create an on-demand reservation that is currently active
+        $startTime = Carbon::now()->subHour();
+        
+        $reservation = Reservation::factory()->create([
+            'user_id' => $this->user->id,
+            'parking_spot_id' => $this->parkingSpot->id,
+            'start_time' => $startTime,
+            'end_time' => null,
+            'type' => ReservationType::ONDEMAND,
+        ]);
+        
+        // Checkout the reservation
+        $result = $this->reservationService->checkoutReservation($this->user, $this->parkingSpot->id);
+        
+        // Assert the reservation was updated
+        $this->assertNotNull($result);
+        $this->assertEquals($reservation->id, $result->id);
+        $this->assertNotNull($result->end_time);
+        $this->assertTrue(Carbon::now()->isSameDay($result->end_time));
+        
+        // Assert the end time was set to now (allow for 5 seconds difference for test execution)
+        $this->assertTrue(Carbon::now()->diffInSeconds($result->end_time) < 5);
+    }
+    
+    public function test_checkout_reservation_returns_null_when_no_active_reservation(): void
+    {
+        // Create a reservation that ended in the past
+        $startTime = Carbon::now()->subHours(2);
+        $endTime = Carbon::now()->subHour();
+        
+        Reservation::factory()->create([
+            'user_id' => $this->user->id,
+            'parking_spot_id' => $this->parkingSpot->id,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Try to checkout a non-active reservation
+        $result = $this->reservationService->checkoutReservation($this->user, $this->parkingSpot->id);
+        
+        // Assert no reservation was found/updated
+        $this->assertNull($result);
+    }
+    
+    public function test_checkout_reservation_returns_null_for_future_reservation(): void
+    {
+        // Create a reservation that starts in the future
+        $startTime = Carbon::now()->addHour();
+        $endTime = Carbon::now()->addHours(2);
+        
+        Reservation::factory()->create([
+            'user_id' => $this->user->id,
+            'parking_spot_id' => $this->parkingSpot->id,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Try to checkout a future reservation
+        $result = $this->reservationService->checkoutReservation($this->user, $this->parkingSpot->id);
+        
+        // Assert no reservation was found/updated
+        $this->assertNull($result);
+    }
 } 
