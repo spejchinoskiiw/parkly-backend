@@ -9,7 +9,8 @@ use App\Models\User;
 use App\Models\EmailVerificationPin as EmailVerificationPinModel;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
-
+use Throwable;
+use Illuminate\Support\Facades\Log;
 final class EmailVerificationService
 {
     public function sendVerificationPin(User $user): void
@@ -25,7 +26,7 @@ final class EmailVerificationService
         try {
             Mail::to($user->email)->send(new EmailVerificationPin($user, $pin));
         }
-        catch (Exception $e) {
+        catch (Throwable $e) {
             Log::error('Error sending verification pin: ' . $e->getMessage());
         }
     }
