@@ -99,3 +99,5 @@ Parking:
 2. Parking spot number
 
 I also discovered that the laravel context needs to be manually added, which means in the previous requests it was missing. After this, Cursor adhered to Laravel standards much more. For some reason it always tries to register old (legacy) Laravel service providers even with the laravel context added. IF this is allowed it will spin out of control trying to fix the errors it caused.
+
+Adding the 3 files to each prompt will sometimes cause Cursor to get confused, if it's a small change, it will attempt to look for more context in the files and bloat the scope of your original request.

@@ -48,4 +48,12 @@ final class Facility extends Model
     {
         return $this->belongsTo(User::class, 'manager_id');
     }
+    
+    /**
+     * Get the users who have this facility as their home facility.
+     */
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
 }

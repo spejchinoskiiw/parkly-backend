@@ -1,17 +1,21 @@
 <?php
 
-namespace App\Http\Requests\Location;
+declare(strict_types=1);
+
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
-class UpdateLocationRequest extends FormRequest
+final class UpdateUserProfileRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return false;
+        // Users can only update their own profile
+        return true;
     }
 
     /**
@@ -22,7 +26,8 @@ class UpdateLocationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => ['sometimes', 'string', 'max:255'],
+            'facility_id' => ['sometimes', 'integer', 'exists:facilities,id'],
         ];
     }
 }

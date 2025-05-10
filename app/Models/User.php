@@ -6,6 +6,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Enums\UserRole;
@@ -25,6 +26,7 @@ final class User extends Authenticatable
         'name',
         'email',
         'role',
+        'facility_id',
     ];
 
     /**
@@ -43,5 +45,13 @@ final class User extends Authenticatable
      */
     protected $casts = [
         'role' => 'string',
-        ];
+    ];
+    
+    /**
+     * Get the facility that the user belongs to.
+     */
+    public function facility(): BelongsTo
+    {
+        return $this->belongsTo(Facility::class);
+    }
 }

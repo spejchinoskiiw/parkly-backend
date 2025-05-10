@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\FacilityController;
 use App\Http\Controllers\Api\ParkingSpotController;
+use App\Http\Controllers\Api\UserController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -14,6 +15,11 @@ Route::post('/verify-pin', [AuthController::class, 'verifyPin']);
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    
+    // User profile routes
+    Route::get('/user/profile', [UserController::class, 'profile']);
+    Route::put('/user/profile', [UserController::class, 'updateProfile']);
+    
     Route::get('/user', function () {
         return auth()->user();
     });
@@ -27,3 +33,4 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/verify-email', [EmailVerificationController::class, 'verify']);
+ 
