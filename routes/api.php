@@ -11,4 +11,4 @@ Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/verify-email', [EmailVerificationController::class, 'verify']);
 
-Route::middleware('auth:sanctum')->group(function () {}
+Route::middleware('auth:sanctum')->group(function () {});
