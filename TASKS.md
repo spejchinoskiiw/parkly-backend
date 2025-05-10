@@ -14,7 +14,7 @@ This document outlines the specific, concrete tasks for implementing the Parkly 
 - [ ] Create users migration with role field
 - [ ] Create locations migration
 - [ ] Create parking_spots migration with status field
-- [ ] Create reservations migration
+- [x] Create reservations migration
 - [ ] Create check_ins migration
 - [ ] Define foreign key relationships
 - [ ] Add appropriate indexes for performance
@@ -57,17 +57,17 @@ This document outlines the specific, concrete tasks for implementing the Parkly 
 - [ ] Write tests for location and spot management
 
 ### Reservation System (Hours 10-15)
-- [ ] Create Reservation model
-- [ ] Implement ReservationController with CRUD operations
-- [ ] Create reservation validation logic
-- [ ] Build conflict detection algorithm
-- [ ] Implement date/time availability checking
+- [x] Create Reservation model
+- [x] Implement ReservationController with CRUD operations
+- [x] Create reservation validation logic
+- [x] Build conflict detection algorithm
+- [x] Implement date/time availability checking
 - [ ] Create endpoints for listing available spots by time
 - [ ] Implement user-specific reservation listings
 - [ ] Add reservation modification with permission checks
 - [ ] Create cancellation functionality
 - [ ] Implement reservation status management
-- [ ] Write tests for reservation flows
+- [x] Write tests for reservation flows
 
 ### Check-in/Check-out Functionality (Hours 15-18)
 - [ ] Create CheckIn model
@@ -111,7 +111,7 @@ This document outlines the specific, concrete tasks for implementing the Parkly 
 ## Phase 4: Documentation & Finalization (Hours 22-24)
 
 ### API Documentation
-- [ ] Document all endpoints in README or dedicated docs
+- [x] Document all endpoints in README or dedicated docs
 - [ ] Create example API requests (curl/Postman)
 - [ ] Document authentication flow
 - [ ] Add error code explanations
@@ -144,9 +144,9 @@ If time becomes constrained, focus on these core tasks to ensure a functional MV
    - QR code generation
 
 3. **Basic Reservation Functionality**
-   - Creating reservations
-   - Listing reservations
-   - Simple conflict prevention
+   - [x] Creating reservations
+   - [ ] Listing reservations
+   - [x] Simple conflict prevention
 
 4. **Check-in Essentials**
    - Basic check-in with QR validation

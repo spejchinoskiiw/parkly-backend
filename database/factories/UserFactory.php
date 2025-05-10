@@ -1,21 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
+use App\Enums\UserRole;
+use App\Models\Facility;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
  */
-class UserFactory extends Factory
+final class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
-
     /**
      * Define the model's default state.
      *
@@ -24,21 +22,41 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
+            'name' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'role' => UserRole::USER->value,
+            'facility_id' => Facility::factory(),
             'remember_token' => Str::random(10),
         ];
     }
-
+    
     /**
-     * Indicate that the model's email address should be unverified.
+     * Configure the user as an admin.
      */
-    public function unverified(): static
+    public function admin(): static
     {
         return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
+            'role' => UserRole::ADMIN->value,
+        ]);
+    }
+    
+    /**
+     * Configure the user as a manager.
+     */
+    public function manager(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => UserRole::MANAGER->value,
+        ]);
+    }
+    
+    /**
+     * Configure the model factory to belong to a specific facility.
+     */
+    public function forFacility(Facility $facility): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'facility_id' => $facility->id,
         ]);
     }
 }

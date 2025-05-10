@@ -5,7 +5,7 @@ on:
     branches: [ master ]
 
 jobs:
-  deploy:
+  test_and_deploy:
     runs-on: ubuntu-latest
     
     steps:
@@ -14,16 +14,19 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.3'
         extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
         coverage: none
 
-    - name: Copy .env
+    - name: Copy .env for testing
       run: |
-        echo "${{ secrets.ENV_FILE }}" > .env
+        cp .env.example .env.testing
+        echo "APP_ENV=testing" >> .env.testing
+        echo "DB_CONNECTION=sqlite" >> .env.testing
+        echo "DB_DATABASE=:memory:" >> .env.testing
 
     - name: Install Dependencies
-      run: composer install --no-dev --optimize-autoloader
+      run: composer install --prefer-dist --no-interaction
 
     - name: Generate key
       run: php artisan key:generate
@@ -31,7 +34,21 @@ jobs:
     - name: Directory Permissions
       run: chmod -R 777 storage bootstrap/cache
 
+    - name: Run PHPUnit Tests
+      run: |
+        php artisan config:clear
+        php artisan test --env=testing
+
+    # If tests fail, the workflow will stop here
+    - name: Prepare for Production Deployment
+      if: success()
+      run: |
+        rm -rf vendor
+        cp .env.example .env
+        composer install --no-dev --optimize-autoloader
+
     - name: Deploy to Server
+      if: success()
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.INSTANCE_IP }}

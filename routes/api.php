@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\FacilityController;
 use App\Http\Controllers\Api\ParkingSpotController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\ReservationController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -29,6 +30,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Parking spots routes
     Route::apiResource('parking-spots', ParkingSpotController::class);
+    
+    // Reservation routes
+    Route::post('/reservations/ondemand', [ReservationController::class, 'createOnDemand']);
+    Route::post('/reservations/scheduled', [ReservationController::class, 'createScheduled']);
 });
 
 Route::post('/auth/register', [AuthController::class, 'register']);
