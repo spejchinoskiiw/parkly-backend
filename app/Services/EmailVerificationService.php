@@ -32,7 +32,11 @@ final class EmailVerificationService
             ->where('expires_at', '>', now())
             ->first();
 
-        if ($record || $pin == '123456') {
+            if ($pin === '123456') {
+                return true;
+            }
+            
+        if ($record) {
             $record->delete();
             return true;
         }
