@@ -20,7 +20,7 @@ final class ParkingSpotResource extends JsonResource
             'id' => $this->id,
             'facility_id' => $this->facility_id,
             'spot_number' => $this->spot_number,
-            'facility' => $this->when($this->relationLoaded('facility'), function () {
+            'facility' => $this->when($this->relationLoaded('facility') && $this->facility !== null, function () {
                 return new FacilityResource($this->facility);
             }),
             'created_at' => $this->created_at,

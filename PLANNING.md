@@ -20,7 +20,7 @@ The primary goal is to deliver a functional backend API that supports the essent
    - Create and manage parking locations (Admin)
    - Add, edit, and remove parking spots (Admin/Manager)
    - Associate parking spots with locations
-   - QR code generation for parking spots
+   <!-- - QR code generation for parking spots --> QR codes are not strictly needed on backend for checkout/checkin
 
 3. **Reservation System**
    - Create reservations for specific date/time and parking spot
@@ -29,7 +29,7 @@ The primary goal is to deliver a functional backend API that supports the essent
    - Prevent double-booking conflicts
 
 4. **Check-in/Check-out Functionality**
-   - Check-in via QR code validation
+   - Check-in 
    - Check-out process
    - Track spot occupancy status
 

@@ -202,6 +202,7 @@ class ReservationAnnotations
      *                 description="Available spots with time slots",
      *                 example={
      *                     "1": {
+     *                         "id": 5,
      *                         "time_slots": {
      *                             {"start": "2023-05-20 08:00:00", "end": "2023-05-20 13:00:00"},
      *                             {"start": "2023-05-20 15:00:00", "end": "2023-05-20 17:00:00"}
@@ -209,6 +210,7 @@ class ReservationAnnotations
      *                         "all_day": false
      *                     },
      *                     "2": {
+     *                         "id": 8,
      *                         "time_slots": {
      *                             {"start": "2023-05-20 08:00:00", "end": "2023-05-20 17:00:00"}
      *                         },
@@ -307,6 +309,134 @@ class ReservationAnnotations
      * )
      */
     public function checkout()
+    {
+        // This is a dummy method for Swagger annotations only
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/reservations/{reservation}",
+     *     summary="Update a reservation",
+     *     description="Update an existing reservation with new start or end times. Authorization rules apply: admins can update any reservation, managers can update reservations in their facility, users can only update their own reservations.",
+     *     operationId="updateReservation",
+     *     tags={"Reservations"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="reservation",
+     *         in="path",
+     *         description="ID of the reservation to update",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Reservation update data",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="start_time", type="string", format="date-time", example="2023-05-20 14:00:00", description="New start time for the reservation (must be a future time)"),
+     *             @OA\Property(property="end_time", type="string", format="date-time", example="2023-05-20 16:00:00", description="New end time for the reservation (must be after start time)")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reservation updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Reservation updated successfully"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="user_id", type="integer", example=1),
+     *                 @OA\Property(property="parking_spot_id", type="integer", example=1),
+     *                 @OA\Property(property="start_time", type="string", format="date-time", example="2023-05-20 14:00:00"),
+     *                 @OA\Property(property="end_time", type="string", format="date-time", example="2023-05-20 16:00:00"),
+     *                 @OA\Property(property="type", type="string", example="scheduled")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized to update this reservation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="You do not have permission to update this reservation")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Reservation not found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Resource not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error or reservation conflict",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Unable to update reservation. The requested time slot might not be available or the time range is invalid.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(ref="#/components/schemas/UnauthorizedError")
+     *     )
+     * )
+     */
+    public function update()
+    {
+        // This is a dummy method for Swagger annotations only
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/reservations/{reservation}",
+     *     summary="Delete a reservation",
+     *     description="Delete an existing reservation. Authorization rules apply: admins can delete any reservation, managers can delete reservations in their facility, users can only delete their own reservations.",
+     *     operationId="deleteReservation",
+     *     tags={"Reservations"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="reservation",
+     *         in="path",
+     *         description="ID of the reservation to delete",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reservation deleted successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Reservation deleted successfully")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized to delete this reservation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="You do not have permission to delete this reservation")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Reservation not found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Resource not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(ref="#/components/schemas/UnauthorizedError")
+     *     )
+     * )
+     */
+    public function destroy()
     {
         // This is a dummy method for Swagger annotations only
     }

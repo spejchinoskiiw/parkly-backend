@@ -21,7 +21,7 @@ final class FacilityResource extends JsonResource
             'name' => $this->name,
             'parking_spot_count' => $this->parking_spot_count,
             'manager_id' => $this->manager_id,
-            'manager' => $this->when($this->relationLoaded('manager'), function () {
+            'manager' => $this->when($this->relationLoaded('manager') && $this->manager !== null, function () {
                 return [
                     'id' => $this->manager->id,
                     'name' => $this->manager->name,

@@ -22,7 +22,7 @@ final class UserResource extends JsonResource
             'email' => $this->email,
             'role' => $this->role,
             'facility_id' => $this->facility_id,
-            'facility' => $this->when($this->relationLoaded('facility'), function () {
+            'facility' => $this->when($this->relationLoaded('facility') && $this->facility !== null, function () {
                 return [
                     'id' => $this->facility->id,
                     'name' => $this->facility->name,

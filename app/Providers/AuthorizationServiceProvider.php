@@ -6,12 +6,23 @@ namespace App\Providers;
 
 use App\Models\Facility;
 use App\Models\ParkingSpot;
+use App\Models\Reservation;
 use App\Models\User;
+use App\Policies\ReservationPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
 final class AuthorizationServiceProvider extends ServiceProvider
 {
+    /**
+     * The model to policy mappings for the application.
+     *
+     * @var array<class-string, class-string>
+     */
+    protected $policies = [
+        Reservation::class => ReservationPolicy::class,
+    ];
+
     /**
      * Register services.
      */
@@ -25,6 +36,9 @@ final class AuthorizationServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register policies
+        $this->registerPolicies();
+        
         // Facility gates
         Gate::define('viewAny-facility', fn(User $user) => true);
         

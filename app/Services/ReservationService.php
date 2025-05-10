@@ -172,6 +172,7 @@ final class ReservationService
                             $availableTimeSlots[0]['end'] === $workDayEnd->format('Y-m-d H:i:s');
                 
                 $availableSpotsWithTimeSlots[$parkingSpot->spot_number] = [
+                    'id' => $parkingSpot->id,
                     'time_slots' => $availableTimeSlots,
                     'all_day' => $isAllDay,
                 ];
@@ -306,5 +307,217 @@ final class ReservationService
         $reservation->save();
         
         return $reservation;
+    }
+
+    /**
+     * Get all reservations for a specific date (admin only).
+     * 
+     * @param Carbon $date The date to get reservations for
+     * @return Collection<int, Reservation> Collection of all reservations for the date
+     */
+    public function getAllReservationsForDate(Carbon $date): Collection
+    {
+        $startOfDay = $date->copy()->startOfDay();
+        $endOfDay = $date->copy()->endOfDay();
+        
+        return Reservation::query()
+            ->where(function (Builder $query) use ($startOfDay, $endOfDay) {
+                // Get reservations that start on the given date
+                $query->whereBetween('start_time', [$startOfDay, $endOfDay])
+                    // Or end on the given date
+                    ->orWhereBetween('end_time', [$startOfDay, $endOfDay])
+                    // Or span across the given date
+                    ->orWhere(function (Builder $query) use ($startOfDay, $endOfDay) {
+                        $query->where('start_time', '<', $startOfDay)
+                            ->where(function (Builder $query) use ($endOfDay) {
+                                $query->where('end_time', '>', $endOfDay)
+                                    ->orWhereNull('end_time');
+                            });
+                    });
+            })
+            ->with(['parkingSpot.facility', 'user'])
+            ->orderBy('start_time')
+            ->get();
+    }
+    
+    /**
+     * Get all reservations for a specific facility on a date (manager only).
+     * 
+     * @param int $facilityId The facility ID
+     * @param Carbon $date The date to get reservations for
+     * @return Collection<int, Reservation> Collection of facility reservations for the date
+     */
+    public function getFacilityReservationsForDate(int $facilityId, Carbon $date): Collection
+    {
+        $startOfDay = $date->copy()->startOfDay();
+        $endOfDay = $date->copy()->endOfDay();
+        
+        return Reservation::query()
+            ->whereHas('parkingSpot', function (Builder $query) use ($facilityId) {
+                $query->where('facility_id', $facilityId);
+            })
+            ->where(function (Builder $query) use ($startOfDay, $endOfDay) {
+                // Get reservations that start on the given date
+                $query->whereBetween('start_time', [$startOfDay, $endOfDay])
+                    // Or end on the given date
+                    ->orWhereBetween('end_time', [$startOfDay, $endOfDay])
+                    // Or span across the given date
+                    ->orWhere(function (Builder $query) use ($startOfDay, $endOfDay) {
+                        $query->where('start_time', '<', $startOfDay)
+                            ->where(function (Builder $query) use ($endOfDay) {
+                                $query->where('end_time', '>', $endOfDay)
+                                    ->orWhereNull('end_time');
+                            });
+                    });
+            })
+            ->with(['parkingSpot.facility', 'user'])
+            ->orderBy('start_time')
+            ->get();
+    }
+    
+    /**
+     * Get an active reservation for a specific parking spot.
+     * 
+     * @param int $parkingSpotId The ID of the parking spot
+     * @return Reservation|null The active reservation if found, null otherwise
+     */
+    public function getActiveReservationForSpot(int $parkingSpotId): ?Reservation
+    {
+        $now = Carbon::now();
+        
+        return Reservation::where('parking_spot_id', $parkingSpotId)
+            ->where(function (Builder $query) use ($now) {
+                // Get reservations where:
+                // 1. Current time is between start and end times (for scheduled reservations)
+                $query->where(function (Builder $query) use ($now) {
+                    $query->where('start_time', '<=', $now)
+                        ->where('end_time', '>=', $now);
+                })
+                // 2. OR it's an on-demand reservation that started but hasn't ended
+                ->orWhere(function (Builder $query) use ($now) {
+                    $query->where('start_time', '<=', $now)
+                        ->whereNull('end_time')
+                        ->where('type', ReservationType::ONDEMAND);
+                });
+            })
+            ->first();
+    }
+    
+    /**
+     * Checkout (end) an active reservation for a specific parking spot.
+     * This is used by admins and managers to check out any reservation.
+     * 
+     * @param int $parkingSpotId The ID of the parking spot to checkout from
+     * @return Reservation|null The updated reservation if successful, null if no active reservation found
+     */
+    public function checkoutReservationBySpot(int $parkingSpotId): ?Reservation
+    {
+        $reservation = $this->getActiveReservationForSpot($parkingSpotId);
+        
+        if (!$reservation) {
+            return null;
+        }
+        
+        // Set the end time to now for the reservation
+        $reservation->end_time = Carbon::now();
+        $reservation->save();
+        
+        return $reservation;
+    }
+
+    /**
+     * Update an existing reservation.
+     * 
+     * @param Reservation $reservation The reservation to update
+     * @param array<string, mixed> $data The data to update (start_time, end_time)
+     * @return Reservation|null The updated reservation or null if update failed
+     */
+    public function updateReservation(Reservation $reservation, array $data): ?Reservation
+    {
+        $startTime = isset($data['start_time']) ? Carbon::parse($data['start_time']) : $reservation->start_time;
+        $endTime = isset($data['end_time']) ? Carbon::parse($data['end_time']) : $reservation->end_time;
+        
+        // For on-demand reservations, we might not have an end time
+        if ($reservation->type === ReservationType::ONDEMAND && !isset($data['end_time'])) {
+            $endTime = null;
+        }
+        
+        // If we have an end time, validate that it's after the start time
+        if ($endTime && $endTime->lessThanOrEqualTo($startTime)) {
+            return null;
+        }
+        
+        // Check if the spot is available for the new time period (excluding the current reservation)
+        if (!$this->isParkingSpotAvailableForUpdate(
+            $reservation->parking_spot_id,
+            $startTime,
+            $endTime,
+            $reservation->id
+        )) {
+            return null;
+        }
+        
+        return DB::transaction(function () use ($reservation, $startTime, $endTime) {
+            $reservation->start_time = $startTime;
+            $reservation->end_time = $endTime;
+            $reservation->save();
+            
+            return $reservation;
+        });
+    }
+    
+    /**
+     * Check if a parking spot is available for the specified time period, excluding a specific reservation.
+     * 
+     * @param int $parkingSpotId The parking spot ID
+     * @param Carbon $startTime The start time to check
+     * @param Carbon|null $endTime The end time to check (null for on-demand reservations)
+     * @param int $excludeReservationId The ID of the reservation to exclude from the check
+     * @return bool True if the spot is available, false otherwise
+     */
+    private function isParkingSpotAvailableForUpdate(
+        int $parkingSpotId,
+        Carbon $startTime,
+        ?Carbon $endTime,
+        int $excludeReservationId
+    ): bool {
+        $query = Reservation::where('parking_spot_id', $parkingSpotId)
+            ->where('id', '!=', $excludeReservationId); // Exclude the current reservation
+        
+        if ($endTime) {
+            // For scheduled reservations, check if there's any overlap with existing reservations
+            $query->where(function (Builder $query) use ($startTime, $endTime) {
+                // Check for any reservation that overlaps with the requested time period
+                $query->where(function (Builder $query) use ($startTime, $endTime) {
+                    // Case 1: Existing reservation starts during our time period
+                    $query->whereBetween('start_time', [$startTime, $endTime]);
+                })->orWhere(function (Builder $query) use ($startTime, $endTime) {
+                    // Case 2: Existing reservation ends during our time period
+                    $query->where('end_time', '!=', null)
+                        ->whereBetween('end_time', [$startTime, $endTime]);
+                })->orWhere(function (Builder $query) use ($startTime, $endTime) {
+                    // Case 3: Our time period falls entirely within an existing reservation
+                    $query->where('start_time', '<=', $startTime)
+                        ->where(function (Builder $query) use ($endTime) {
+                            $query->where('end_time', '>=', $endTime)
+                                ->orWhere('end_time', null);
+                        });
+                });
+            });
+        } else {
+            // For on-demand reservations, check if there's any reservation at that exact start time
+            // or if there's a scheduled reservation that contains this start time
+            $query->where(function (Builder $query) use ($startTime) {
+                // Case 1: Exact match on start time
+                $query->where('start_time', $startTime);
+            })->orWhere(function (Builder $query) use ($startTime) {
+                // Case 2: Start time falls within a scheduled reservation's time range
+                $query->where('start_time', '<=', $startTime)
+                    ->where('end_time', '>=', $startTime);
+            });
+        }
+        
+        // If any reservation exists for this time period, the spot is not available
+        return !$query->exists();
     }
 } 
