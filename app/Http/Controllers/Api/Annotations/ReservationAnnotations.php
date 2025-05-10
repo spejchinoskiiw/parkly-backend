@@ -440,4 +440,57 @@ class ReservationAnnotations
     {
         // This is a dummy method for Swagger annotations only
     }
+
+    /**
+     * @OA\Get(
+     *     path="/api/reservations/active",
+     *     summary="Get active and pending reservations",
+     *     description="Returns all active and pending reservations for the authenticated user. Active reservations are those where the current time is between start and end time or on-demand reservations that have started but not ended. Pending reservations are those with a start time in the future.",
+     *     operationId="getActiveReservations",
+     *     tags={"Reservations"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="user_id", type="integer", example=1),
+     *                     @OA\Property(property="parking_spot_id", type="integer", example=1),
+     *                     @OA\Property(property="start_time", type="string", format="date-time", example="2023-05-20 09:00:00"),
+     *                     @OA\Property(property="end_time", type="string", format="date-time", example="2023-05-20 17:00:00"),
+     *                     @OA\Property(property="type", type="string", example="scheduled"),
+     *                     @OA\Property(
+     *                         property="parking_spot",
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="facility_id", type="integer", example=1),
+     *                         @OA\Property(property="spot_number", type="integer", example=1),
+     *                         @OA\Property(
+     *                             property="facility",
+     *                             type="object",
+     *                             @OA\Property(property="id", type="integer", example=1),
+     *                             @OA\Property(property="name", type="string", example="Skopje Office")
+     *                         )
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(ref="#/components/schemas/UnauthorizedError")
+     *     )
+     * )
+     */
+    public function getActiveReservations()
+    {
+        // This is a dummy method for Swagger annotations only
+    }
 }

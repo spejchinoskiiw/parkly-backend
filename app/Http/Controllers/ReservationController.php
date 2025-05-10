@@ -321,4 +321,20 @@ final class ReservationController extends Controller
             'message' => 'Reservation deleted successfully',
         ]);
     }
+
+    /**
+     * Get all active and pending reservations for the authenticated user.
+     * 
+     * @return JsonResponse
+     */
+    public function getActiveReservations(): JsonResponse
+    {
+        $reservations = $this->reservationService->getUserActiveReservations(
+            auth()->user()
+        );
+        
+        return response()->json([
+            'data' => ReservationResource::collection($reservations),
+        ]);
+    }
 } 

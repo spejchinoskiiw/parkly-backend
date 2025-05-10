@@ -520,4 +520,34 @@ final class ReservationService
         // If any reservation exists for this time period, the spot is not available
         return !$query->exists();
     }
+
+    /**
+     * Get all active and pending reservations for a user.
+     * Active reservations: Current time is between start and end time or on-demand reservations that have started but not ended.
+     * Pending reservations: Reservations with a start time in the future.
+     * 
+     * @param User $user The user to get reservations for
+     * @return Collection<int, Reservation> Collection of user's active and pending reservations
+     */
+    public function getUserActiveReservations(User $user): Collection
+    {
+        $now = Carbon::now();
+        
+        return Reservation::where('user_id', $user->id)
+            ->where(function (Builder $query) use ($now) {
+                // Active reservations: current time is between start and end times
+                $query->where(function (Builder $query) use ($now) {
+                    $query->where('start_time', '<=', $now)
+                        ->where(function (Builder $query) use ($now) {
+                            $query->where('end_time', '>=', $now)
+                                ->orWhereNull('end_time');
+                        });
+                })
+                // Pending reservations: start time is in the future
+                ->orWhere('start_time', '>', $now);
+            })
+            ->with(['parkingSpot.facility'])
+            ->orderBy('start_time')
+            ->get();
+    }
 } 

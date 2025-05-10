@@ -357,4 +357,81 @@ class ReservationServiceTest extends TestCase
         // Assert no reservation was found/updated
         $this->assertNull($result);
     }
+
+    public function test_get_user_active_reservations(): void
+    {
+        // Create a facility
+        $facility = Facility::factory()->create();
+        
+        // Create a parking spot
+        $parkingSpot = ParkingSpot::factory()->create([
+            'facility_id' => $facility->id,
+        ]);
+        
+        // Create a user
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        
+        $now = Carbon::now();
+        
+        // Create an active scheduled reservation (current time is between start and end)
+        $activeScheduled = Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $now->copy()->subHour(),
+            'end_time' => $now->copy()->addHour(),
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Create an active on-demand reservation (started but not ended)
+        $activeOnDemand = Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $now->copy()->subHour(),
+            'end_time' => null,
+            'type' => ReservationType::ONDEMAND,
+        ]);
+        
+        // Create a pending reservation (start time in the future)
+        $pendingReservation = Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $now->copy()->addHours(2),
+            'end_time' => $now->copy()->addHours(4),
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Create a past reservation (ended)
+        Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $now->copy()->subHours(3),
+            'end_time' => $now->copy()->subHour(),
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Create a reservation for another user (should not be returned)
+        Reservation::factory()->create([
+            'user_id' => $otherUser->id,
+            'parking_spot_id' => $parkingSpot->id,
+            'start_time' => $now->copy()->subHour(),
+            'end_time' => $now->copy()->addHour(),
+            'type' => ReservationType::SCHEDULED,
+        ]);
+        
+        // Get active and pending reservations
+        $activeReservations = $this->reservationService->getUserActiveReservations($user);
+        
+        // Should return 3 reservations: 1 active scheduled, 1 active on-demand, and 1 pending
+        $this->assertCount(3, $activeReservations);
+        
+        // Check that the correct reservations are returned
+        $this->assertTrue($activeReservations->contains('id', $activeScheduled->id));
+        $this->assertTrue($activeReservations->contains('id', $activeOnDemand->id));
+        $this->assertTrue($activeReservations->contains('id', $pendingReservation->id));
+        
+        // Check that the relationships are loaded
+        $this->assertTrue($activeReservations->first()->relationLoaded('parkingSpot'));
+        $this->assertTrue($activeReservations->first()->parkingSpot->relationLoaded('facility'));
+    }
 } 
