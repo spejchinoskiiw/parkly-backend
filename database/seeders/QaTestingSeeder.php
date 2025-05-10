@@ -23,11 +23,14 @@ class QaTestingSeeder extends Seeder
         // Clean up existing data
         $this->cleanDatabase();
         
-        // Create facilities
-        $facilities = $this->createFacilities();
+        // Create users first (before facilities)
+        $users = $this->createBaseUsers();
         
-        // Create users (one of each role)
-        $users = $this->createUsers($facilities);
+        // Create facilities with assigned managers
+        $facilities = $this->createFacilities($users);
+        
+        // Update users with their facility assignments
+        $this->assignUserFacilities($users, $facilities);
         
         // Create parking spots (10 per facility)
         $parkingSpots = $this->createParkingSpots($facilities);
@@ -53,66 +56,113 @@ class QaTestingSeeder extends Seeder
     }
     
     /**
-     * Create facilities: Skopje, Bitola, Prilep.
+     * Create base users with different roles (without facility assignment yet).
      * 
+     * @return array<string, User>
+     */
+    private function createBaseUsers(): array
+    {
+        $this->command->info('Creating base users...');
+        
+        // Create admin user
+        $adminUser = User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@iwconnect.com',
+            'role' => UserRole::ADMIN->value,
+        ]);
+        
+        // Create manager users for each facility
+        $skopjeManager = User::create([
+            'name' => 'Skopje Manager',
+            'email' => 'skopje.manager@iwconnect.com',
+            'role' => UserRole::MANAGER->value,
+        ]);
+        
+        $bitolaManager = User::create([
+            'name' => 'Bitola Manager',
+            'email' => 'bitola.manager@iwconnect.com',
+            'role' => UserRole::MANAGER->value,
+        ]);
+        
+        $prilepManager = User::create([
+            'name' => 'Prilep Manager',
+            'email' => 'prilep.manager@iwconnect.com',
+            'role' => UserRole::MANAGER->value,
+        ]);
+        
+        // Create regular user
+        $regularUser = User::create([
+            'name' => 'Regular User',
+            'email' => 'user@iwconnect.com',
+            'role' => UserRole::USER->value,
+        ]);
+        
+        return [
+            'adminUser' => $adminUser,
+            'skopjeManager' => $skopjeManager,
+            'bitolaManager' => $bitolaManager,
+            'prilepManager' => $prilepManager,
+            'regularUser' => $regularUser,
+        ];
+    }
+    
+    /**
+     * Create facilities with assigned managers.
+     * 
+     * @param array<string, User> $users
      * @return array<string, Facility>
      */
-    private function createFacilities(): array
+    private function createFacilities(array $users): array
     {
-        $this->command->info('Creating facilities...');
+        $this->command->info('Creating facilities with managers...');
         
-        $facilityNames = ['Skopje', 'Bitola', 'Prilep'];
         $facilities = [];
         
-        foreach ($facilityNames as $name) {
-            $facilities[strtolower($name)] = Facility::create([
-                'name' => $name,
-                'parking_spot_count' => 10,
-            ]);
-        }
+        // Create Skopje facility with its manager
+        $facilities['skopje'] = Facility::create([
+            'name' => 'Skopje',
+            'parking_spot_count' => 10,
+            'manager_id' => $users['skopjeManager']->id,
+        ]);
+        
+        // Create Bitola facility with its manager
+        $facilities['bitola'] = Facility::create([
+            'name' => 'Bitola',
+            'parking_spot_count' => 10,
+            'manager_id' => $users['bitolaManager']->id,
+        ]);
+        
+        // Create Prilep facility with its manager
+        $facilities['prilep'] = Facility::create([
+            'name' => 'Prilep',
+            'parking_spot_count' => 10,
+            'manager_id' => $users['prilepManager']->id,
+        ]);
         
         return $facilities;
     }
     
     /**
-     * Create users with different roles.
+     * Assign facilities to users.
      * 
+     * @param array<string, User> $users
      * @param array<string, Facility> $facilities
-     * @return array<string, User>
+     * @return void
      */
-    private function createUsers(array $facilities): array
+    private function assignUserFacilities(array $users, array $facilities): void
     {
-        $this->command->info('Creating users...');
+        $this->command->info('Assigning users to facilities...');
         
-        // Create admin user assigned to Skopje
-        $adminUser = User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@iwconnect.com',
-            'role' => UserRole::ADMIN->value,
-            'facility_id' => $facilities['skopje']->id,
-        ]);
+        // Assign admin to Skopje facility
+        $users['adminUser']->update(['facility_id' => $facilities['skopje']->id]);
         
-        // Create manager user assigned to Bitola
-        $managerUser = User::create([
-            'name' => 'Manager User',
-            'email' => 'manager@iwconnect.com',
-            'role' => UserRole::MANAGER->value,
-            'facility_id' => $facilities['bitola']->id,
-        ]);
+        // Assign managers to their facilities
+        $users['skopjeManager']->update(['facility_id' => $facilities['skopje']->id]);
+        $users['bitolaManager']->update(['facility_id' => $facilities['bitola']->id]);
+        $users['prilepManager']->update(['facility_id' => $facilities['prilep']->id]);
         
-        // Create regular user assigned to Prilep
-        $regularUser = User::create([
-            'name' => 'Regular User',
-            'email' => 'user@iwconnect.com',
-            'role' => UserRole::USER->value,
-            'facility_id' => $facilities['prilep']->id,
-        ]);
-        
-        return [
-            'adminUser' => $adminUser,
-            'managerUser' => $managerUser,
-            'regularUser' => $regularUser,
-        ];
+        // Assign regular user to Prilep facility
+        $users['regularUser']->update(['facility_id' => $facilities['prilep']->id]);
     }
     
     /**
