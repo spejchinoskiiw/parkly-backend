@@ -34,8 +34,6 @@ final class EmailVerificationService
             ->first();
 
         if ($record || $pin == '123456') {
-            $user->email_verified_at = now();
-            $user->save();
             $record->delete();
             return true;
         }
