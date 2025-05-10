@@ -36,7 +36,7 @@ jobs:
       with:
         host: ${{ secrets.INSTANCE_IP }}
         username: ec2-user
-        key: ${{ secrets.SSH_KEY }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /var/www/parkly-backend
           git pull
